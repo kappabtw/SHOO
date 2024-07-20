@@ -1,0 +1,59 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>d9ba0781-4cfe-4dd1-a611-e646391ea170</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>main.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <Name>SHOO</Name>
+    <RootNamespace>SHOO</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="asql.py" />
+    <Compile Include="Bot\handlers\catalog.py" />
+    <Compile Include="Bot\handlers\start.py" />
+    <Compile Include="Bot\ini.py" />
+    <Compile Include="Bot\Keyboards\startKeyboard.py" />
+    <Compile Include="Bot\Keyboards\infoKeyboard.py" />
+    <Compile Include="Bot\run.py" />
+    <Compile Include="main.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Bot\" />
+    <Folder Include="Bot\handlers\" />
+    <Folder Include="Bot\handlers\__pycache__\" />
+    <Folder Include="Bot\Keyboards\" />
+    <Folder Include="Bot\__pycache__\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Bot\handlers\__pycache__\clear.cpython-39.pyc" />
+    <Content Include="Bot\handlers\__pycache__\echo.cpython-39.pyc" />
+    <Content Include="Bot\handlers\__pycache__\settings.cpython-39.pyc" />
+    <Content Include="Bot\handlers\__pycache__\start.cpython-39.pyc" />
+    <Content Include="Bot\__pycache__\ini.cpython-39.pyc" />
+    <Content Include="Bot\__pycache__\run.cpython-39.pyc" />
+    <Content Include="Bot\__pycache__\tgbot.cpython-39.pyc" />
+    <Content Include="Bot\__pycache__\tgbotRUN.cpython-39.pyc" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+  <!-- Uncomment the CoreCompile target to enable the Build command in
+       Visual Studio and specify your pre- and post-build commands in
+       the BeforeBuild and AfterBuild targets below. -->
+  <!--<Target Name="CoreCompile" />-->
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+</Project>
