@@ -3,9 +3,9 @@ import asyncio
 import logging
 from Bot.ini import *
 from Bot.run import run
+from asql import ASQL
 
 logging.basicConfig(level=logging.INFO)
-
 async def main():
     await run()    
     await dp.start_polling(bot)

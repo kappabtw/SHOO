@@ -22,12 +22,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="asql.py" />
+    <Compile Include="Bot\data.py" />
     <Compile Include="Bot\handlers\catalog.py" />
     <Compile Include="Bot\handlers\start.py" />
     <Compile Include="Bot\ini.py" />
     <Compile Include="Bot\Keyboards\startKeyboard.py" />
-    <Compile Include="Bot\Keyboards\infoKeyboard.py" />
+    <Compile Include="Bot\Keyboards\backToMenuKeyboard.py" />
+    <Compile Include="Bot\Keyboards\catalogKeyboard.py" />
+    <Compile Include="Bot\Keyboards\backToBrand.py" />
     <Compile Include="Bot\run.py" />
+    <Compile Include="Bot\requests\show_model.py" />
     <Compile Include="main.py" />
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +39,7 @@
     <Folder Include="Bot\handlers\" />
     <Folder Include="Bot\handlers\__pycache__\" />
     <Folder Include="Bot\Keyboards\" />
+    <Folder Include="Bot\requests\" />
     <Folder Include="Bot\__pycache__\" />
   </ItemGroup>
   <ItemGroup>

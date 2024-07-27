@@ -1,10 +1,20 @@
 # -*- coding: windows-1251 -*-
 from aiogram import types
+from Bot import data
 
-catalog = types.InlineKeyboardButton(text = "Каталог", callback_data="catalog")
-manager = types.InlineKeyboardButton(text = "Менеджер", callback_data="manager", url = "https://t.me/sinokda")
-reviews = types.InlineKeyboardButton(text = "Отзывы", callback_data = "reviews")
-info = types.InlineKeyboardButton(text = "Информация", callback_data="info")
+catalog_callback_data:str = "catalog"
+manager_callback_data:str = "manager"
+reviews_callback_data:str = "reviews"
+info_callback_data:str = "info"
+
+manager_url = "https://t.me/sinokda"
+
+
+
+catalog = types.InlineKeyboardButton(text = data.Message['catalog'], callback_data=data.Callback['catalog'])
+manager = types.InlineKeyboardButton(text = data.Message['manager'], callback_data=data.Callback['manager'], url = manager_url)
+reviews = types.InlineKeyboardButton(text = data.Message['reviews'], callback_data = data.Callback['reviews'])
+info = types.InlineKeyboardButton(text = data.Message['info'], callback_data=data.Callback['info'])
 
 keyboard = types.InlineKeyboardMarkup(inline_keyboard=[[catalog, info], [reviews, manager]])
 

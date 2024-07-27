@@ -1,44 +1,36 @@
 # -*- coding: windows-1251 -*-
 from aiogram import Router, types
 from aiogram.filters import Command
-from aiogram.enums import ParseMode
 from Bot.Keyboards import startKeyboard, backToMenuKeyboard
+from asql import ASQL
+from Bot import data
 
 router = Router()
 
-startMessage:str = "Старт"
-infoMessage:str = "Информация о нас"
-catalogMessage:str = "Наш каталог"
-
-
-
 @router.message(Command("start"))
 async def cmd_start(msg: types.Message):
-    await msg.answer(text = startMessage, reply_markup=startKeyboard.keyboard)
     
-@router.callback_query(lambda callback: callback.data == "catalog")
-async def catalog_callback(callback: types.CallbackQuery):
-    
-    await callback.message.edit_text(text=catalogMessage)
+    await msg.answer(text = data.Message['upper_menu'], reply_markup=startKeyboard.keyboard)
+    await ASQL.execute(f"INSERT OR IGNORE INTO Пользователи (id, name, username) VALUES ({msg.from_user.id},\'{msg.from_user.first_name}\',\'{msg.from_user.username}\')")
 
-
-@router.callback_query(lambda callback: callback.data == "info")
+@router.callback_query(lambda callback: callback.data == data.Callback['info'])
 async def info_callback(callback: types.CallbackQuery):
-    await callback.message.edit_text(text = infoMessage, reply_markup = backToMenuKeyboard.keyboard)
+    await callback.message.edit_text(text = data.Message['upper_info'], reply_markup = backToMenuKeyboard.keyboard)
     
-@router.callback_query(lambda callback: callback.data == "reviews")
+@router.callback_query(lambda callback: callback.data == data.Callback['reviews'])
 async def callback_to_reviews(callback: types.CallbackQuery):
     
     await callback.answer()
     
-@router.callback_query(lambda callback: callback.data == "manager")
+@router.callback_query(lambda callback: callback.data == data.Callback['manager'])
 async def callback_to_manager(callback:types.CallbackQuery):
     
     await callback.answer()
     
-@router.callback_query(lambda callback: callback.data == "back_to_menu")
-async def callback_to_reviews(callback: types.CallbackQuery):
-    await callback.message.edit_text(text = startMessage, reply_markup=startKeyboard.keyboard)
+@router.callback_query(lambda callback: callback.data == data.Callback['menu'])
+async def callback_to_menu(callback: types.CallbackQuery):
+    await callback.message.edit_text(text = data.Message['upper_menu'], reply_markup=startKeyboard.keyboard)
+
     
 
     
