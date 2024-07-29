@@ -58,21 +58,6 @@ Callback = {
            "def" : "defmodel_",
            "sales" : "model_sales_",
            "new" : "model_new_"
-        },
-    
-    "back" : {
-        "menu" : "Назад в меню",
-        "catalog" : "Назад в каталог",
-        "brand" : {
-           "def" : "Назад к брендам",
-           "sales" : "Назад к брендам [Скидки]",
-           "new" : "Назад к брендам [Новинки]"
-        },
-        "model" : {
-           "def" : "Назад к моделям",
-           "sales" : "Назад к моделям [Скидки]",
-           "models" : "Назад к моделям [Новинки]"
-            }
         }
     }
 
@@ -81,6 +66,8 @@ model_options = (
     Callback['model']['sales'],
     Callback['model']['new']
     )
+
+time_photo = "AgACAgIAAxkBAAIWcWalyNHHCXDGIz6Go45oPY3ShLltAAKY6zEbb_opSYPWrqNeY8t9AQADAgADeQADNQQ"
 
 
 
