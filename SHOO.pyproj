@@ -25,6 +25,7 @@
     <Compile Include="Bot\data.py" />
     <Compile Include="Bot\handlers\admin.py" />
     <Compile Include="Bot\handlers\catalog.py" />
+    <Compile Include="Bot\handlers\models.py" />
     <Compile Include="Bot\handlers\start.py" />
     <Compile Include="Bot\ini.py" />
     <Compile Include="Bot\Keyboards\startKeyboard.py" />
