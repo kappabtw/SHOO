@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from asql import ASQL
 from Bot.Keyboards import catalogKeyboard
 from Bot import data
-from Bot.requests.show_model import *
+from Bot.requests.model_display import *
 
 router = Router()
 
@@ -69,7 +69,7 @@ async def callback_to_catalog(callback: types.CallbackQuery):
 async def callback_show_model_info(callback: types.CallbackQuery):
     list_id = await get_models_id(callback.data)  # Получаем список ID моделей
     current_index = 0
-    txt = await show_model(list_id[current_index], current= 1, count=len(list_id))  # Получаем подпись к изображению
+    txt = await get_text_about_model(list_id[current_index], current= 1, count=len(list_id))  # Получаем подпись к изображению
     keyboard_prev_next = types.InlineKeyboardMarkup(
                                                       inline_keyboard=[
                                                           [
@@ -102,7 +102,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
         current_index = len(list_id) - 1
     elif current_index >= len(list_id):
         current_index = 0
-    txt = await show_model(list_id[current_index], current=current_index + 1, count = len(list_id))
+    txt = await get_text_about_model(list_id[current_index], current=current_index + 1, count = len(list_id))
     photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ?", (list_id[current_index]))
     photo_id = photo_from_db[0][0]
     

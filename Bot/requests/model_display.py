@@ -2,7 +2,7 @@
 from Bot import data
 from asql import ASQL
 
-async def data_to_dict(data_list) -> dict:
+async def convert_data_to_dict(data_list) -> dict:
     data = data_list[0]
     return {
         'Бренд':data[0],
@@ -29,7 +29,7 @@ async def textAboutModel(about_model:dict, current:int, count:int)->str:
 
 		# Формирование текстового описания
 	return f'''
-{"/[Новинка/]" if about_model['Новинка'] else ''} {about_model['Бренд']} {about_model['Модель']} [{current}\{count}]
+{"[Новинка]" if about_model['Новинка'] else ''} {about_model['Бренд']} {about_model['Модель']} --> {current}\{count}
 
 Цвет: {about_model['Рассцветка']}
 Размер: {about_model['Размер']}
@@ -58,9 +58,9 @@ async def get_models_id(callback_data:str):
 	models_data = await ASQL.execute(request)
 	return [model[0] for model in models_data]
 
-async def show_model(id : int, current:int, count:int):
+async def get_text_about_model(id : int, current:int, count:int):
 	model_info_list = await ASQL.execute(f"SELECT * FROM Кроссовки WHERE id = {id}")
-	model_info_dict = await data_to_dict(model_info_list)
+	model_info_dict = await convert_data_to_dict(model_info_list)
 	return await textAboutModel(model_info_dict, current, count)
 
 
