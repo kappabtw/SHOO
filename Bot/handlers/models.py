@@ -1,3 +1,4 @@
+# -*- coding: windows-1251 -*-
 from aiogram import Router, types
 from aiogram.enums import ParseMode
 from asql import ASQL
@@ -22,25 +23,44 @@ async def get_back_model_callback(callback : str):
 
 @router.callback_query(lambda callback: any(callback.data.startswith(model_options) for model_options in data.model_options))
 async def callback_show_model_info(callback: types.CallbackQuery):
-    list_id = await get_models_id(callback.data)  # Получаем список ID моделей
-    current_index = 0
-    txt = await get_text_about_model(list_id[current_index], current= 1, count=len(list_id))  # Получаем подпись к изображению
-    keyboard_prev_next = types.InlineKeyboardMarkup(
-                                                      inline_keyboard=[
-                                                          [
-                                                              types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{callback.data}_{current_index}"),
-                                                              types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{callback.data}_{current_index}")
-                                                          ],
-                                                          [
-                                                              types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
-                                                              ]
-                                                      ]
-                                                    )
-
-    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ?", (list_id[current_index]))
+    list_id:list = await get_models_id(callback.data)  # Получаем список ID моделей
+    if not list_id: 
+        await callback.answer(text = "Извините, модель не найдена", show_alert=True)
+        return
+    current_index:int = 0
+    count_list_id:int = len(list_id)
+    txt:str = await get_text_about_model(list_id[current_index], current = 1, count=count_list_id)  # Получаем подпись к изображению
+    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
     photo_id = photo_from_db[0][0]
-    await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
-                                  reply_markup=keyboard_prev_next)
+    if not photo_id:
+        photo_id = data.no_image_photo
+        
+    
+    if count_list_id > 1:
+        keyboard_prev_next = types.InlineKeyboardMarkup(
+                                                          inline_keyboard=[
+                                                              [
+                                                                  types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{callback.data}_{current_index}"),
+                                                                  types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{callback.data}_{current_index}")
+                                                              ],
+                                                              [
+                                                                  types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
+                                                                  ]
+                                                          ]
+                                                        )
+
+        await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
+                                      reply_markup=keyboard_prev_next)
+    else:
+        keyboard_alone = types.InlineKeyboardMarkup(
+                                                          inline_keyboard=[
+                                                              [
+                                                                  types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
+                                                                  ]
+                                                          ]
+                                                        )
+        await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
+                                      reply_markup=keyboard_alone)
     await callback.answer()
 
 @router.callback_query(lambda callback: callback.data.startswith("prev_") or callback.data.startswith("next_"))
@@ -58,7 +78,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
     elif current_index >= len(list_id):
         current_index = 0
     txt = await get_text_about_model(list_id[current_index], current=current_index + 1, count = len(list_id))
-    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ?", (list_id[current_index]))
+    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
     photo_id = photo_from_db[0][0]
     
     keyboard_prev_next = types.InlineKeyboardMarkup(

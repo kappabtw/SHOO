@@ -1,3 +1,4 @@
+# -*- coding: windows-1251 -*-
 from aiogram.filters import Command
 from aiogram import Router, types
 from asql import ASQL

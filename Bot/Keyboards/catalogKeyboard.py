@@ -9,7 +9,7 @@ new_items = types.InlineKeyboardButton(text = data.Message['new_items'], callbac
 
 async def select_brands() -> types.InlineKeyboardMarkup:
     inline_buttons = [[sales, new_items]] 
-    brands = await ASQL.execute("SELECT DISTINCT Бренд FROM Кроссовки;")
+    brands = await ASQL.execute("SELECT DISTINCT Бренд FROM Кроссовки WHERE Количество > 0;")
 
     row = []
     
@@ -29,7 +29,7 @@ async def select_brands() -> types.InlineKeyboardMarkup:
 
 async def select_models(callback: types.CallbackQuery):
     brand = callback.data.split("_")[1]
-    models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = \'{brand}\'")
+    models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = ? AND Количество > 0 ", brand)
     inline_buttons = []
     row = []
     for model in models:
@@ -44,7 +44,7 @@ async def select_models(callback: types.CallbackQuery):
 
 async def select_brands_with_sales() -> types.InlineKeyboardMarkup:
     inline_buttons = [[new_items]] 
-    brands = await ASQL.execute("SELECT DISTINCT Бренд FROM Кроссовки WHERE Скидка = 1")
+    brands = await ASQL.execute("SELECT DISTINCT Бренд FROM Кроссовки WHERE Скидка = 1 AND Количество > 0")
 
     row = []
     
@@ -64,7 +64,7 @@ async def select_brands_with_sales() -> types.InlineKeyboardMarkup:
 
 async def select_brands_new_items() -> types.InlineKeyboardMarkup:
     inline_buttons = [[sales]] 
-    brands = await ASQL.execute("SELECT DISTINCT Бренд FROM Кроссовки WHERE Новинка = 1")
+    brands = await ASQL.execute("SELECT DISTINCT Бренд FROM Кроссовки WHERE Новинка = 1 AND Количество > 0")
 
     row = []
     
@@ -84,7 +84,7 @@ async def select_brands_new_items() -> types.InlineKeyboardMarkup:
 
 async def select_models_with_sales(callback: types.CallbackQuery):
     brand = callback.data.split("_")[2]
-    models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = \'{brand}\' AND Скидка = 1")
+    models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = ? AND Скидка = 1 AND Количество > 0", (brand))
     inline_buttons = []
     
     row = []
@@ -100,7 +100,7 @@ async def select_models_with_sales(callback: types.CallbackQuery):
 
 async def select_models_new_items(callback: types.CallbackQuery):
     brand = callback.data.split("_")[2]
-    models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = \'{brand}\' AND Новинка = 1")
+    models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = ? AND Новинка = 1 AND Количество > 0", (brand))
     inline_buttons = []
     row = []
     for model in models:

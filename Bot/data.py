@@ -68,6 +68,7 @@ model_options = (
     )
 
 time_photo = "AgACAgIAAxkBAAIWcWalyNHHCXDGIz6Go45oPY3ShLltAAKY6zEbb_opSYPWrqNeY8t9AQADAgADeQADNQQ"
+no_image_photo = "AgACAgIAAxkBAAIWl2apPW1x9xN1YyBbcdP9lmggfj3xAAKx3jEbbZ1JSY8IkkfENIxvAQADAgADeAADNQQ"
 
 
 
