@@ -9,6 +9,7 @@ from asql import ASQL
 logging.basicConfig(level=logging.INFO)
 
 async def main():
+    await ASQL.connect()
     await run()    
     await dp.start_polling(bot)
 

@@ -11,7 +11,7 @@ router = Router()
 async def cmd_start(msg: types.Message):
     
     await msg.answer_photo(photo = data.time_photo, caption = data.Message['upper_menu'], reply_markup=startKeyboard.keyboard)
-    await ASQL.execute(f"INSERT OR IGNORE INTO Пользователи (id, name, username) VALUES ({msg.from_user.id},\'{msg.from_user.first_name}\',\'{msg.from_user.username}\')")
+    await ASQL.execute(f"INSERT OR IGNORE INTO Пользователи (id, name, username) VALUES (?,?,?)",(msg.from_user.id,msg.from_user.first_name,f'@{msg.from_user.username}'))
 
 @router.callback_query(lambda callback: callback.data == data.Callback['info'])
 async def info_callback(callback: types.CallbackQuery):

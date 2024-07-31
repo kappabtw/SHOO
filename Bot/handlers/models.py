@@ -32,6 +32,9 @@ async def callback_show_model_info(callback: types.CallbackQuery):
     txt:str = await get_text_about_model(list_id[current_index], current = 1, count=count_list_id)  # Получаем подпись к изображению
     photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
     photo_id = photo_from_db[0][0]
+    model_data = callback.data.split("_")
+    del model_data[0:3] 
+    model_data = "_".join(model_data)
     if not photo_id:
         photo_id = data.no_image_photo
         
@@ -42,7 +45,10 @@ async def callback_show_model_info(callback: types.CallbackQuery):
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{callback.data}_{current_index}"),
                                                                   types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{callback.data}_{current_index}")
-                                                              ],
+                                                                ],
+                                                              [
+                                                              types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model_data}")    
+                                                                ],
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
                                                                   ]
@@ -54,6 +60,10 @@ async def callback_show_model_info(callback: types.CallbackQuery):
     else:
         keyboard_alone = types.InlineKeyboardMarkup(
                                                           inline_keyboard=[
+                                                              
+                                                            [
+                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model_data}")    
+                                                                ],
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
                                                                   ]
@@ -82,12 +92,15 @@ async def callback_prev_next(callback: types.CallbackQuery):
     photo_id = photo_from_db[0][0]
     
     keyboard_prev_next = types.InlineKeyboardMarkup(
-                                                      inline_keyboard=[
-                                                          [
-                                                              types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{model_data}_{current_index}"),
-                                                              types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
-                                                          ],
-                                                          [
+                                                        inline_keyboard=[
+                                                            [
+                                                                types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{model_data}_{current_index}"),
+                                                                types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
+                                                                ],
+                                                            [
+                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model_data}")    
+                                                                ],
+                                                            [
                                                               types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{model_data}"))
                                                           ]
                                                       ]
