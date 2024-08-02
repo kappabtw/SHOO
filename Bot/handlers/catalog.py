@@ -9,7 +9,7 @@ router = Router()
 
 @router.message(Command("catalog"))
 async def cmd_catalog(msg: types.Message):
-     await msg.answer_photo(photo = data.time_photo,caption = data.Message['brand']['def'], reply_markup = await catalogKeyboard.select_brands())
+    await msg.answer_photo(photo = data.time_photo,caption = data.Message['brand']['def'], reply_markup = await catalogKeyboard.select_brands())
      
 @router.callback_query(lambda callback: callback.data.startswith(data.Callback['brand']['def'])) #Выбрать модель бренда 
 async def model_choice(callback: types.CallbackQuery):

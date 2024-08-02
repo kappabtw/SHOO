@@ -19,14 +19,25 @@ class ASQL:
         """Closes the connection to the database"""
         await cls.database.close()
     @classmethod
-    async def execute(cls, command, *args)->None:
-        """¬ыполн€ет SQL-команды c фиксацикй изменений в базе данных"""
+    async def execute(cls, command, *args):
+        """¬ыполн€ет SQL-команды c фиксацией изменений в базе данных, fetchall()"""
         if cls.cursor is None:
             raise RuntimeError("—оединение с базой данных не установлено")
         if len(args) == 1 and isinstance(args[0], (list, tuple)):
             args = args[0]
         await cls.cursor.execute(command, args)
         result = await cls.cursor.fetchall()
+        await cls.database.commit()
+        return result
+    
+    async def execute_fetchone(cls, command, *args):
+        """¬ыполн€ет SQL-команды c фиксацией изменений в базе данных, fetchone()"""
+        if cls.cursor is None:
+            raise RuntimeError("—оединение с базой данных не установлено")
+        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+            args = args[0]
+        await cls.cursor.execute(command, args)
+        result = await cls.cursor.fetchone()
         await cls.database.commit()
         return result
             

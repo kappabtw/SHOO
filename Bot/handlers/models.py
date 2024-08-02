@@ -1,4 +1,5 @@
 # -*- coding: windows-1251 -*-
+from tkinter import CURRENT
 from aiogram import Router, types
 from aiogram.enums import ParseMode
 from asql import ASQL
@@ -47,7 +48,7 @@ async def callback_show_model_info(callback: types.CallbackQuery):
                                                                   types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{callback.data}_{current_index}")
                                                                 ],
                                                               [
-                                                              types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model_data}")    
+                                                              types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
                                                                 ],
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
@@ -62,7 +63,7 @@ async def callback_show_model_info(callback: types.CallbackQuery):
                                                           inline_keyboard=[
                                                               
                                                             [
-                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model_data}")    
+                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
                                                                 ],
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
@@ -73,7 +74,7 @@ async def callback_show_model_info(callback: types.CallbackQuery):
                                       reply_markup=keyboard_alone)
     await callback.answer()
 
-@router.callback_query(lambda callback: callback.data.startswith("prev_") or callback.data.startswith("next_"))
+@router.callback_query(lambda callback: callback.data.startswith("prev_") or callback.data.startswith("next_")) #todo: hand 1
 async def callback_prev_next(callback: types.CallbackQuery):
     parts = callback.data.split("_")
     model_data = "_".join(parts[1:-1])
@@ -98,7 +99,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
                                                                 types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
                                                                 ],
                                                             [
-                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model_data}")    
+                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
                                                                 ],
                                                             [
                                                               types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{model_data}"))
