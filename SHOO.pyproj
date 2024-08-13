@@ -26,7 +26,10 @@
     <Compile Include="Bot\handlers\admin.py" />
     <Compile Include="Bot\handlers\catalog.py" />
     <Compile Include="Bot\handlers\models.py" />
-    <Compile Include="Bot\handlers\order.py" />
+    <Compile Include="Bot\handlers\order\closed_order.py" />
+    <Compile Include="Bot\handlers\order\new_order.py" />
+    <Compile Include="Bot\handlers\order\other_order.py" />
+    <Compile Include="Bot\handlers\order\processed_order.py" />
     <Compile Include="Bot\handlers\start.py" />
     <Compile Include="Bot\ini.py" />
     <Compile Include="Bot\Keyboards\orderKeyboard.py" />
@@ -41,6 +44,7 @@
   <ItemGroup>
     <Folder Include="Bot\" />
     <Folder Include="Bot\handlers\" />
+    <Folder Include="Bot\handlers\order\" />
     <Folder Include="Bot\handlers\__pycache__\" />
     <Folder Include="Bot\Keyboards\" />
     <Folder Include="Bot\requests\" />

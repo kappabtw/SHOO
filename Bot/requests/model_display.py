@@ -52,9 +52,9 @@ async def get_models_id(callback_data:str):
 	print(start_iter, callback_data)
 	brand = callback_data[start_iter]
 	model = callback_data[start_iter + 1]
-	request = f"SELECT id FROM Кроссовки WHERE Бренд = \'{brand}\' AND Модель = \'{model}\'" #попробовать забирать все айди
+	request = f"SELECT id FROM Кроссовки WHERE Бренд = \'{brand}\' AND Модель = \'{model}\' AND Количество > 0" #попробовать забирать все айди
 	if option:
-		request += f"AND {option} = 1"
+		request += f" AND {option} = 1"
 	models_data = await ASQL.execute(request)
 	return [model[0] for model in models_data]
 

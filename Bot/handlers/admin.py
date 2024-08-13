@@ -11,14 +11,19 @@ router = Router(name = 'admin')
 
 @router.message(Command('load'))
 async def load_photo(message: types.Message):
-    is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (message.from_user.id))
-    assert is_manager[0][0] != 1
-    shoes_id = message.caption.split(" ")[1]
-    photo_id = message.photo[-1].file_id
-    await ASQL.execute("UPDATE Кроссовки SET Фото = ? WHERE id = ?", (photo_id,shoes_id))
+    try:
+        is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (message.from_user.id))
+        assert is_manager[0][0] == 1
+        shoes_id = message.caption.split(" ")[1]
+        photo_id = message.photo[-1].file_id
+        await ASQL.execute("UPDATE Кроссовки SET Фото = ? WHERE id = ?", (photo_id,shoes_id))
 
-    # Обработка загруженной фотографии
-    await message.answer('Фотография успешно загружена.')
+        # Обработка загруженной фотографии
+        await message.answer('Фотография успешно загружена.')
+    except AssertionError:
+        pass
+    except RuntimeError as handler_error:
+       await message.answer(text = handler_error)
     
 @router.message(Command('add_manager'))
 async def add_manager(message: types.Message):
@@ -42,6 +47,8 @@ async def add_manager(message: types.Message):
             return
         await message.reply(f"Успешно добавлен новый менеджер {new_username}")
         await message.bot.send_message(text = f"{new_username}, Вы были назначены на роль менеджера", chat_id = new_id)
+    except AssertionError:
+        pass
     except Exception as handler_exception:
         await message.reply(f"Произошла ошибка при обработке запроса `/add_manager {new_username} : {handler_exception} `", parse_mode= ParseMode.MARKDOWN)
     
@@ -49,7 +56,7 @@ async def add_manager(message: types.Message):
 async def del_manager(message: types.Message):
     try:
         is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =? AND access = 1)", (message.from_user.id))
-        assert is_owner[0][0]== 1
+        assert is_owner[0][0] == 1
         text: list = message.text.split(" ")
         target = text[1]
         if target.startswith("@"):
@@ -84,6 +91,8 @@ async def delete_all_managers(message: types.Message):
         await message.reply("Все менеджеры были успешно удалены")
         for manager in all_managers:
             await message.bot.send_message(text = f"Вы были удалены из списка менеджеров", chat_id = manager[0])
+    except AssertionError:
+        pass
     except Exception as handler_exception:
         await message.reply(f"Произошла ошибка при обработке запроса `/delete_all_managers : {handler_exception} `", parse_mode= ParseMode.MARKDOWN)
 
@@ -98,6 +107,8 @@ async def show_managers(message: types.Message):
         for manager in all_managers:
             text+= f"{manager[1]}|{manager[0]}\n\n"
         await message.answer(text = text)
+    except AssertionError:
+        pass
     except Exception as handler_error:
         await message.reply(text = f"При обработке вашего запроса произошла ошибка : `{handler_error}`", parse_mode = ParseMode.MARKDOWN)
     
