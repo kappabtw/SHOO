@@ -3,7 +3,6 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram import Router, types
 from asql import ASQL
-from Bot import data
 from sqlite3 import IntegrityError
 
 

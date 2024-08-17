@@ -1,7 +1,5 @@
 # -*- coding: windows-1251 -*-
-import datetime
 from aiogram import Router, types
-from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from asql import ASQL
 from Bot.Keyboards import orderKeyboard
