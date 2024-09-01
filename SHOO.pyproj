@@ -26,7 +26,8 @@
     <Compile Include="Bot\handlers\admin.py" />
     <Compile Include="Bot\handlers\catalog.py" />
     <Compile Include="Bot\handlers\models.py" />
-    <Compile Include="Bot\handlers\order\admin_panel\redactModels.py" />
+    <Compile Include="Bot\handlers\order\admin_panel\redact_commands.py" />
+    <Compile Include="Bot\handlers\order\admin_panel\redact_showmodels.py" />
     <Compile Include="Bot\handlers\order\admin_panel\panel.py" />
     <Compile Include="Bot\handlers\order\closed_order.py" />
     <Compile Include="Bot\handlers\order\new_order.py" />

@@ -8,7 +8,7 @@ async def select_brands():
     row = []
     inline_buttons = []
     for brand in brands:
-        row.append(types.InlineKeyboardButton(text=brand[0], callback_data=f"brand_adminpanel_{brand[0]}"))
+        row.append(types.InlineKeyboardButton(text=brand[0], callback_data=f"brandadminpanel_{brand[0]}"))
         
         if len(row) == 3:
             inline_buttons.append(row)
@@ -17,17 +17,17 @@ async def select_brands():
     if row:
         inline_buttons.append(row)
 
-    inline_buttons.append([types.InlineKeyboardButton(text="Назад", callback_data="admin_panel")])
+    inline_buttons.append([types.InlineKeyboardButton(text="Назад", callback_data="adminpanel")])
     
     return types.InlineKeyboardMarkup(inline_keyboard=inline_buttons)
 
 async def select_models(callback: types.CallbackQuery):
-    brand = callback.data.split("_")[2]
+    brand = callback.data.split("_")[1]
     models = await ASQL.execute(f"SELECT DISTINCT Модель FROM Кроссовки WHERE Бренд = ?", brand)
     row = []
     inline_buttons = []
     for model in models:
-        row.append(types.InlineKeyboardButton(text=model[0], callback_data=f"model_adminpanel_{brand}_{model[0]}"))
+        row.append(types.InlineKeyboardButton(text=model[0], callback_data=f"modeladminpanel_{brand}_{model[0]}"))
                                             
         if len(row) == 3:
             inline_buttons.append(row)

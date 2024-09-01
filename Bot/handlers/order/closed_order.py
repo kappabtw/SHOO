@@ -11,7 +11,8 @@ async def show_closed_orders(callback: types.CallbackQuery):
 	query = """
 		SELECT 
 			(SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =?)) AS is_manager,
-			o.order_id, o.order_user_id, o.order_user_name, o.order_date, k.Бренд, k.Модель, k.Размер, k.Расцветка,o.order_closed_date, o.order_closed_by, o.order_closed_write_off
+			o.order_id, o.order_user_id, o.order_user_name, o.order_date, k.Бренд, k.Модель, k.Размер, k.Расцветка,o.order_closed_date, o.order_closed_by, o.order_closed_write_off,
+			o.order_taken_by
 		FROM 
 			Заказы o
 		JOIN 
@@ -34,7 +35,9 @@ async def show_closed_orders(callback: types.CallbackQuery):
 		order_closed_date = result[0][9]
 		order_closed_by = result[0][10]
 		order_write_off = result[0][11]
-			
+		order_taken_by = result[0][12]
+		
+		order_taken_by = (await callback.bot.get_chat(order_taken_by)).username
 		order_closed_by = (await callback.bot.get_chat(order_closed_by)).username
 		assert is_manager == 1
 
@@ -49,6 +52,7 @@ async def show_closed_orders(callback: types.CallbackQuery):
 Расцветка - {model_color}
 
 Время закрытия заказа - {order_closed_date}
+Взял : @{order_taken_by}
 Закрыл : @{order_closed_by}
 Списано: {'да' if order_write_off else 'нет'}
 		'''
@@ -107,7 +111,8 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 				(SELECT 1 FROM is_manager) AS is_manager,
 				o.order_closed_date,
 				o.order_closed_by,
-				o.order_closed_write_off
+				o.order_closed_write_off,
+				o.order_taken_by
 			FROM 
 				Заказы o
 			JOIN 
@@ -130,7 +135,9 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 			order_closed_date = order_data[9]
 			order_closed_by = order_data[10]
 			order_write_off = order_data[11]
+			order_taken_by = order_data[12]
 			
+			order_taken_by = (await callback.bot.get_chat(order_taken_by)).username
 			order_closed_by = (await callback.bot.get_chat(order_closed_by)).username
 
 			order_text = f'''
@@ -144,6 +151,7 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 Расцветка - {model_color}
 
 Время закрытия заказа - {order_closed_date}
+Взял: @{order_taken_by}
 Закрыл : @{order_closed_by}
 Списано: {'да' if order_write_off else 'нет'}
 			'''

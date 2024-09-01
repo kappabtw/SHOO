@@ -12,22 +12,22 @@ async def choice_orders_type(message: types.Message):
 	try:
 		is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (message.from_user.id))
 		assert is_owner[0][0] == 1
+		orderTypesKeyboard = types.InlineKeyboardMarkup(
+			inline_keyboard = [
+				[
+					types.InlineKeyboardButton(text = "Новые", callback_data = "to_new_orders"),
+					types.InlineKeyboardButton(text = "В обработке", callback_data = "to_processed_orders"),
+					types.InlineKeyboardButton(text = "Закрытые", callback_data = "to_closed_orders")
+				]
+			]
+	
+		)
+
+		await message.answer("Выберите тип заказов", reply_markup = orderTypesKeyboard)
 	except AssertionError:
 		pass
 	except Exception as handler_exception:
 		await message.reply(f"Произошла ошибка: {handler_exception}") 
-	orderTypesKeyboard = types.InlineKeyboardMarkup(
-		inline_keyboard = [
-			[
-				types.InlineKeyboardButton(text = "Новые", callback_data = "to_new_orders"),
-				types.InlineKeyboardButton(text = "В обработке", callback_data = "to_processed_orders"),
-				types.InlineKeyboardButton(text = "Закрытые", callback_data = "to_closed_orders")
-			]
-		]
-	
-	)
-
-	await message.answer("Выберите тип заказов", reply_markup = orderTypesKeyboard)
 
 @router.callback_query(lambda callback: callback.data.startswith("order_"))
 async def create_order(callback: types.CallbackQuery):

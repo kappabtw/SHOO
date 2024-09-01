@@ -100,7 +100,7 @@ async def show_managers(message: types.Message):
     try:
         is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ? AND access = 1)", (message.from_user.id))
         assert is_owner[0][0] == 1
-        all_managers = await ASQL.execute("SELECT * FROM Менеджеры WHERE access = 0")
+        all_managers = await ASQL.execute("SELECT * FROM Менеджеры WHERE access = 0"                                  )
         text = "Список менеджеров [username|userid]:\n"
         print(all_managers)
         for manager in all_managers:

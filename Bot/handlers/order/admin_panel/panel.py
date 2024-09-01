@@ -18,7 +18,7 @@ async def admin_start_panel(message: types.Message):
 	except AssertionError:
 		pass
 	
-@router.callback_query(lambda callback: callback.data == "admin_panel")
+@router.callback_query(lambda callback: callback.data == "adminpanel")
 async def admin_start_panel(callback: types.CallbackQuery):
 	try:
 		assert (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id)))[0][0] == 1
@@ -29,13 +29,21 @@ async def admin_start_panel(callback: types.CallbackQuery):
 	
 @router.callback_query(lambda callback : callback.data == "redact_catalog")
 async def redact_catalog(callback: types.CallbackQuery):
-	keyboard_brands = await adminCatalogKeyboard.select_brands()
-	await callback.message.edit_caption(text = "Выберите бренд:", reply_markup = keyboard_brands)
+	try:
+		assert (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id)))[0][0] == 1
+		keyboard_brands = await adminCatalogKeyboard.select_brands()
+		await callback.message.edit_caption(text = "Выберите бренд:", reply_markup = keyboard_brands)
+	except AssertionError:
+		pass
 	
-@router.callback_query(lambda callback: callback.data.startswith("brand_adminpanel_"))
+@router.callback_query(lambda callback: callback.data.startswith("brandadminpanel_"))
 async def show_models(callback: types.CallbackQuery):
-	show_models_kb = await adminCatalogKeyboard.select_models(callback)
-	await callback.message.edit_media(media = types.InputMediaPhoto(media = data.time_photo, caption="Выберите модель:"), reply_markup=show_models_kb)
+	try:
+		assert (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id)))[0][0] == 1
+		show_models_kb = await adminCatalogKeyboard.select_models(callback)
+		await callback.message.edit_media(media = types.InputMediaPhoto(media = data.time_photo, caption="Выберите модель:"), reply_markup=show_models_kb)
+	except AssertionError:
+		pass
 	
 
 
