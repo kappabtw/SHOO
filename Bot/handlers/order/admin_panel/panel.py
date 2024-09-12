@@ -9,12 +9,19 @@ from Bot import data
 router = Router(name = "admin_panel")
 
 redact_catalog_kb = types.InlineKeyboardButton(text = "Редактировать каталог", callback_data = "redact_catalog")
+list_managers = types.InlineKeyboardButton(text = "Список менеджеров", callback_data = "managers_show")
+show_orders = types.InlineKeyboardButton(text = "Заказы", callback_data = "types_orders")
+
+admin_keyboard = types.InlineKeyboardMarkup(inline_keyboard=[[redact_catalog_kb],
+															 [list_managers, show_orders]])
+															   
+															 
 
 @router.message(Command("admin"))
 async def admin_start_panel(message: types.Message):
 	try:
 		assert (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (message.from_user.id)))[0][0] == 1
-		await message.answer_photo(photo = data.time_photo ,caption = "Выберите опцию", reply_markup= types.InlineKeyboardMarkup(inline_keyboard=[[redact_catalog_kb]]))
+		await message.answer_photo(photo = data.time_photo ,caption = "Выберите опцию", reply_markup= admin_keyboard)
 	except AssertionError:
 		pass
 	
@@ -22,7 +29,7 @@ async def admin_start_panel(message: types.Message):
 async def admin_start_panel(callback: types.CallbackQuery):
 	try:
 		assert (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id)))[0][0] == 1
-		await callback.message.edit_caption(caption = "Выберите опцию", reply_markup= types.InlineKeyboardMarkup(inline_keyboard=[[redact_catalog_kb]]))
+		await callback.message.edit_caption(caption = "Выберите опцию", reply_markup= admin_keyboard)
 	except AssertionError:
 		pass
 	

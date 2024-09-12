@@ -10,6 +10,8 @@ router = Router	(name = "new_orders")
 
 @router.callback_query(lambda callback: callback.data == "to_new_orders")
 async def show_new_orders(callback: types.CallbackQuery):
+	print(1)
+	print(callback)
 	query = """
 		SELECT 
 			(SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =?)) AS is_manager,
@@ -72,7 +74,7 @@ async def show_new_orders(callback: types.CallbackQuery):
 				]	
 			]
 		)
-		await callback.message.edit_text(text=order_text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard_next_prev)
+		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
 	except AssertionError:
 		await callback.answer()
 	except IndexError:
@@ -164,7 +166,7 @@ async def next_prev_new_orders(callback: types.CallbackQuery):
 					]
 				]
 			)
-			await callback.message.edit_text(text=order_text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard_next_prev)
+			await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
 	except AssertionError:
 		pass
 	except IndexError:

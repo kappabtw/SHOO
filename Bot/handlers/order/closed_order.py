@@ -69,10 +69,13 @@ async def show_closed_orders(callback: types.CallbackQuery):
 				[
 					orderKeyboard.new_orders_button,
 					orderKeyboard.processed_orders_button
-				]
+				],
+				[
+					types.InlineKeyboardButton(text = "К меню", callback_data = "adminpanel")
+					]
 			]
 		)
-		await callback.message.edit_text(text=order_text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard_next_prev)
+		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
 	except AssertionError:
 		await callback.answer()
 	except IndexError:
@@ -168,10 +171,13 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 					[
 						orderKeyboard.new_orders_button,
 						orderKeyboard.processed_orders_button
+					],
+					[
+						types.InlineKeyboardButton(text = "К меню", callback_data = "adminpanel")
 					]
 				]
 			)
-			await callback.message.edit_text(text=order_text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard_next_prev)
+			await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
 	except AssertionError:
 		pass
 	except IndexError:

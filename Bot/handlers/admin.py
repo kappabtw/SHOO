@@ -7,22 +7,6 @@ from sqlite3 import IntegrityError
 
 
 router = Router(name = 'admin')
-
-@router.message(Command('load'))
-async def load_photo(message: types.Message):
-    try:
-        is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (message.from_user.id))
-        assert is_manager[0][0] == 1
-        shoes_id = message.caption.split(" ")[1]
-        photo_id = message.photo[-1].file_id
-        await ASQL.execute("UPDATE Кроссовки SET Фото = ? WHERE id = ?", (photo_id,shoes_id))
-
-        # Обработка загруженной фотографии
-        await message.answer('Фотография успешно загружена.')
-    except AssertionError:
-        pass
-    except RuntimeError as handler_error:
-       await message.answer(text = handler_error)
     
 @router.message(Command('add_manager'))
 async def add_manager(message: types.Message):

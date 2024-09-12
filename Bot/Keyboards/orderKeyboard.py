@@ -1,7 +1,5 @@
 # -*- coding: windows-1251 -*-
 from aiogram import types
-from asql import ASQL
-from Bot import data
 
 new_orders_button = types.InlineKeyboardButton(text = "Новые заказы", callback_data="to_new_orders")
 processed_orders_button = types.InlineKeyboardButton(text = "Заказы в обработке", callback_data="to_processed_orders")

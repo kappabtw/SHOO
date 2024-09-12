@@ -83,7 +83,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
         current_index -= 1
     elif callback.data.startswith("next_"):
         current_index += 1
-    elif current_index < 0:
+    if current_index < 0:
         current_index = len(list_id) - 1
     elif current_index >= len(list_id):
         current_index = 0

@@ -7,10 +7,11 @@ from asql import ASQL
 from Bot.Keyboards import orderKeyboard
 
 router = Router	(name = "other_orders")
-@router.message(Command("orders"))
-async def choice_orders_type(message: types.Message):
+@router.callback_query(lambda callback: callback.data == "types_orders")
+async def choice_orders_type(callback: types.CallbackQuery):
+	
 	try:
-		is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (message.from_user.id))
+		is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id))
 		assert is_owner[0][0] == 1
 		orderTypesKeyboard = types.InlineKeyboardMarkup(
 			inline_keyboard = [
@@ -23,11 +24,11 @@ async def choice_orders_type(message: types.Message):
 	
 		)
 
-		await message.answer("Выберите тип заказов", reply_markup = orderTypesKeyboard)
+		await callback.message.answer("Выберите тип заказов", reply_markup = orderTypesKeyboard)
 	except AssertionError:
 		pass
 	except Exception as handler_exception:
-		await message.reply(f"Произошла ошибка: {handler_exception}") 
+		await callback.message.reply(f"Произошла ошибка: {handler_exception}") 
 
 @router.callback_query(lambda callback: callback.data.startswith("order_"))
 async def create_order(callback: types.CallbackQuery):

@@ -46,20 +46,23 @@ async def show_model(callback : types.CallbackQuery):
 	
 		if count_list_id > 1:
 			keyboard_prev_next = types.InlineKeyboardMarkup(
-															  inline_keyboard=[
-																  [
+															inline_keyboard=[
+																[
 																	  types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
 																	  types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
-																	  ],
+																],
+																[
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
+																],
 																  
-																  [
+																[
 																	  types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{model_data}_{current_index}"),
 																	  types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
-																	],
+																],
 
-																  [
+															    [
 																	  types.InlineKeyboardButton(text = "Назад к моделям", callback_data= f"brandadminpanel_{brand}")
-																	  ]
+																]
 															  ]
 															)
 
@@ -71,6 +74,9 @@ async def show_model(callback : types.CallbackQuery):
 																[
 																	types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
 																	types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
+																	],
+																[
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
 																	],
 																[
 																	types.InlineKeyboardButton(text = "Назад к моделям", callback_data= f"brandadminpanel_{brand}")
@@ -106,8 +112,6 @@ async def callback_prev_next(callback: types.CallbackQuery):
 		model_data = "_".join(model_data[1:-1])
 		list_id = await model_display.get_models_id(model_data, positive_count = False)
 		
-		print(list_id)
-		
 		if sign is not None:
 			try:
 				await ASQL.execute(f"UPDATE Кроссовки SET Количество = Количество {sign} 1 WHERE id = ?", (list_id[index_for_change]))
@@ -126,12 +130,16 @@ async def callback_prev_next(callback: types.CallbackQuery):
 		txt = await model_display.get_text_about_model(list_id[current_index], current=current_index + 1, count = len(list_id), enable_manager_info= True)
 		photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
 		photo_id = photo_from_db[0][0]
+		
 		if count_list_id > 1:
 			keyboard_prev_next = types.InlineKeyboardMarkup(
 																inline_keyboard=[
 																	[
 																		types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
 																		types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
+																	],
+																	[
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
 																	],
 																	[
 																		types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{model_data}_{current_index}"),
@@ -153,8 +161,11 @@ async def callback_prev_next(callback: types.CallbackQuery):
 																inline_keyboard=[
 																	[
 																		types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
-																		types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{CURRENT}_+")
-																	  ],
+																		types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
+																	],
+																	[
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
+																	],
 																
 																	[
 																		types.InlineKeyboardButton(text = "Назад к моделям", callback_data= f"brandadminpanel_{brand}")

@@ -1,9 +1,4 @@
 # -*- coding: windows-1251 -*-
-from ast import parse
-from inspect import stack
-from statistics import quantiles
-from typing import Type
-from uu import Error
 from aiogram import Router, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, StateFilter
@@ -89,6 +84,7 @@ async def add_model_size(message: types.Message, state: FSMContext):
         await state.update_data(size=INT_SIZE)
     except ValueError:
         await message.answer("Неккоректные данные. Повторите данные")
+        return
     await message.answer("Введите цену кроссовок:",
                          reply_markup= types.InlineKeyboardMarkup(inline_keyboard=[[add_model_clear_state,
                             types.InlineKeyboardButton(text="Повторить", callback_data = "retry_state_price")]]))
@@ -264,13 +260,21 @@ async def check_result(message: types.Message, state: FSMContext):
 async def add_to_catalog(callback: types.CallbackQuery, state:FSMContext):
     data = await state.get_data()
     
+    added_models_id = []
+    
     discount_pice = -1 if data['discount'] != 1 else data['discount_price']
-    for i in range(len(data['size_quantity'])):
-        await ASQL.execute("INSERT INTO Кроссовки (Бренд,Модель,Расцветка,Размер,Цена,Скидка,\"Скидочная цена\",Новинка,Количество) VALUES(?,?,?,?,?,?,?,?,?)",
-                            (data['brand'],data['model'],data['color'],
-                            data['size_quantity'][i][0],data['price'],data['discount'],
-                            discount_pice,data['is_new'],data['size_quantity'][i][1]))
-    await callback.answer("Успешно добавлено!")
+    try: 
+        for i in range(len(data['size_quantity'])):
+            result = await ASQL.execute("INSERT INTO Кроссовки (Бренд,Модель,Расцветка,Размер,Цена,Скидка,\"Скидочная цена\",Новинка,Количество) VALUES(?,?,?,?,?,?,?,?,?) RETURNING id",
+                                (data['brand'],data['model'],data['color'],
+                                data['size_quantity'][i][0],data['price'],data['discount'],
+                                discount_pice,data['is_new'],data['size_quantity'][i][1]))
+            added_models_id.append(int(result[0][0]))
+    finally:
+        pass
+        
+    await callback.message.answer(f"Успешно добавлено.\nЗагрузить фотографии можно с помощью отправки команды `/load_image {data['brand']}_{data['model']}_{data['color']}` с прикреплённой фотографией",
+                                  parse_mode=ParseMode.MARKDOWN)
     await state.clear()
 
 @router.callback_query(lambda callback: callback.data == "add_model_clear_state")
