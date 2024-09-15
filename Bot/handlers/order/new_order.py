@@ -10,8 +10,6 @@ router = Router	(name = "new_orders")
 
 @router.callback_query(lambda callback: callback.data == "to_new_orders")
 async def show_new_orders(callback: types.CallbackQuery):
-	print(1)
-	print(callback)
 	query = """
 		SELECT 
 			(SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =?)) AS is_manager,
@@ -26,7 +24,16 @@ async def show_new_orders(callback: types.CallbackQuery):
 	"""
 	try:
 		result = await ASQL.execute(query, (callback.from_user.id))
+		
+		if not result:
+			await callback.answer("Новых заказов нет")
+			return
+		
 		is_manager = result[0][0]
+		
+		if is_manager != 1:
+			return
+		
 		order_id = result[0][1]
 		order_user_id = result[0][2]
 		order_user_name = result[0][3]
@@ -37,7 +44,10 @@ async def show_new_orders(callback: types.CallbackQuery):
 		model_color = result[0][8]
 		model_count = result[0][9]
 		orders_model_count = result[0][10]
-		assert is_manager == 1
+
+		print(result)		
+
+
 
 		order_text = f'''
 Заказ #{order_id}
@@ -61,8 +71,8 @@ async def show_new_orders(callback: types.CallbackQuery):
 				],
 				[
 					types.InlineKeyboardButton(text = "Взять заказ", callback_data = f"in_process_order_{order_id}"),
-					types.InlineKeyboardButton(text = "Закрыть заказ", callback_data= f"close_order_{order_id}_write-off"),
-					types.InlineKeyboardButton(text = "Закрыть без списания", callback_data = f"close_order_{order_id}_no-write-off")
+					types.InlineKeyboardButton(text = "Закрыть заказ", callback_data= f"close_order_{order_id}_write-off_fromnew"),
+					types.InlineKeyboardButton(text = "Закрыть без списания", callback_data = f"close_order_{order_id}_no-write-off_fromnew")
 				],
 				[
 					types.InlineKeyboardButton(text = "Чат с заказчиком", url = f"tg://user?id={order_user_id}")	
@@ -77,8 +87,7 @@ async def show_new_orders(callback: types.CallbackQuery):
 		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
 	except AssertionError:
 		await callback.answer()
-	except IndexError:
-		await callback.answer(text = "Новые заказы отсутствуют")
+
 @router.callback_query(lambda callback: callback.data.startswith("nextorder_") or callback.data.startswith("prevorder_"))        
 async def next_prev_new_orders(callback: types.CallbackQuery):
 	try:
@@ -89,7 +98,7 @@ async def next_prev_new_orders(callback: types.CallbackQuery):
 
 			query = """
 			   WITH is_manager AS (
-				SELECT 1
+				SELECT 1 AS is_exists
 				FROM Менеджеры
 				WHERE id = ?
 			), next_order AS (
@@ -115,10 +124,19 @@ async def next_prev_new_orders(callback: types.CallbackQuery):
 				Кроссовки k ON o.model_id = k.id
 			WHERE 
 				o.order_id = (SELECT next_order_id FROM next_order)
+				
 			""".format(det_func=det_func, direction=direction)
+			
 			result = await ASQL.execute(query, (callback.from_user.id, call_order_id))
-
-			assert result[0][8] == 1
+			
+			if not result:
+				await callback.answer("Новых заказов нет")
+				return
+			
+			is_manager = result[0][8]
+			
+			if is_manager != 1:
+				return
 
 			order_data = result[0]
 			order_id = order_data[0]
@@ -145,6 +163,7 @@ async def next_prev_new_orders(callback: types.CallbackQuery):
 
 Заказов в обработке с такой же моделью - {orders_model_count}
 			'''
+			print(order_text)
 
 			keyboard_next_prev = types.InlineKeyboardMarkup(
 				inline_keyboard=[
@@ -167,10 +186,5 @@ async def next_prev_new_orders(callback: types.CallbackQuery):
 				]
 			)
 			await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
-	except AssertionError:
-		pass
-	except IndexError:
-		await callback.answer("Новые заказы отсутствуют")
-		return
 	finally:
 		await callback.answer()

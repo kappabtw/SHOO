@@ -24,14 +24,19 @@ async def get_back_model_callback(callback : str):
 
 @router.callback_query(lambda callback: any(callback.data.startswith(model_options) for model_options in data.model_options))
 async def callback_show_model_info(callback: types.CallbackQuery):
+    print(callback.data)
+    model_data = callback.data.split("_")[1:]
+    brand = model_data[-2]
+    model = model_data[-1]
     list_id:list = await get_models_id(callback.data)  # Получаем список ID моделей
     if not list_id: 
         await callback.answer(text = "Извините, модель не найдена", show_alert=True)
         return
     current_index:int = 0
     count_list_id:int = len(list_id)
-    txt:str = await get_text_about_model(list_id[current_index], current = 1, count=count_list_id)  # Получаем подпись к изображению
-    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
+    txt:str = await get_text_about_model(brand,model,list_id, current = 0, count=count_list_id)  # Получаем подпись к изображению
+    color = list_id[current_index][0]
+    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE Бренд = ? AND Модель = ? AND Расцветка = ? AND Количество > 0", (brand, model, color))
     photo_id = photo_from_db[0][0]
     if not photo_id:
         photo_id = data.no_image_photo
@@ -45,7 +50,7 @@ async def callback_show_model_info(callback: types.CallbackQuery):
                                                                   types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{callback.data}_{current_index}")
                                                                 ],
                                                               [
-                                                              types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
+                                                              types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model}_{brand}_{list_id[current_index][0]}")    
                                                                 ],
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
@@ -53,28 +58,29 @@ async def callback_show_model_info(callback: types.CallbackQuery):
                                                           ]
                                                         )
 
-        await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
+        await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt),
                                       reply_markup=keyboard_prev_next)
     else:
         keyboard_alone = types.InlineKeyboardMarkup(
                                                           inline_keyboard=[
                                                               
                                                             [
-                                                                types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
+                                                                types.InlineKeyboardButton(text = "Заказать", callback_data =f"order_{model}_{brand}_{list_id[current_index][0]}")    
                                                                 ],
                                                               [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{callback.data}"))
                                                                   ]
                                                           ]
                                                         )
-        await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
+        await callback.message.edit_media(media=types.InputMediaPhoto(media = photo_id, caption=txt),
                                       reply_markup=keyboard_alone)
     await callback.answer()
 
 @router.callback_query(lambda callback: callback.data.startswith("prev_defmodel_") or callback.data.startswith("next_defmodel_") or callback.data.startswith("prev_model_") or callback.data.startswith("next_model_")) #todo: hand 1
 async def callback_prev_next(callback: types.CallbackQuery):
-    print(callback.data)
     parts = callback.data.split("_")
+    brand = parts[-3]
+    model = parts[-2]
     model_data = "_".join(parts[1:-1])
     current_index = int(parts[-1])
     list_id = await get_models_id(model_data)  # Получаем список ID моделей
@@ -87,8 +93,10 @@ async def callback_prev_next(callback: types.CallbackQuery):
         current_index = len(list_id) - 1
     elif current_index >= len(list_id):
         current_index = 0
-    txt = await get_text_about_model(list_id[current_index], current=current_index + 1, count = len(list_id))
-    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
+    color = list_id[current_index][0]
+    txt = await get_text_about_model(brand,model,list_id,current=current_index, count = count_list_id)
+    photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE Бренд = ? AND Модель = ? AND Расцветка = ? AND Количество > 0", (brand, model, color))
+    print(photo_from_db)
     photo_id = photo_from_db[0][0]
     if count_list_id > 1:
         keyboard_prev_next = types.InlineKeyboardMarkup(
@@ -98,7 +106,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
                                                                     types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
                                                                     ],
                                                                 [
-                                                                    types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
+                                                                    types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model}_{brand}_{list_id[current_index][0]}")    
                                                                     ],
                                                                 [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{model_data}"))
@@ -107,14 +115,14 @@ async def callback_prev_next(callback: types.CallbackQuery):
                                                         )
 
         await callback.message.edit_media(
-                                            media=types.InputMediaPhoto(media=photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
+                                            media=types.InputMediaPhoto(media=photo_id, caption=txt),
                                             reply_markup=keyboard_prev_next
                                          )
     else:
         keyboard_prev_next = types.InlineKeyboardMarkup(
                                                             inline_keyboard=[
                                                                 [
-                                                                    types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{list_id[current_index]}_{callback.from_user.id}")    
+                                                                    types.InlineKeyboardButton(text = "Заказать", callback_data = f"order_{model}_{brand}_{list_id[current_index][0]}")    
                                                                     ],
                                                                 [
                                                                   types.InlineKeyboardButton(text = "Назад к моделям", callback_data= await get_back_model_callback(f"zero_{model_data}"))
@@ -123,7 +131,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
                                                         )
 
         await callback.message.edit_media(
-                                            media=types.InputMediaPhoto(media=photo_id, caption=txt, parse_mode=ParseMode.MARKDOWN),
+                                            media=types.InputMediaPhoto(media=photo_id, caption=txt),
                                             reply_markup=keyboard_prev_next
                                          )
 

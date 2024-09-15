@@ -71,9 +71,6 @@ async def show_processed_orders(callback: types.CallbackQuery):
 				[
 					orderKeyboard.new_orders_button,
 					orderKeyboard.closed_orders_button
-				],
-				[
-					types.InlineKeyboardButton(text = "К меню", callback_data = "adminpanel")
 				]
 			]
 		)
@@ -174,9 +171,6 @@ async def next_prev_processed_orders(callback: types.CallbackQuery):
 					[
 						orderKeyboard.new_orders_button,
 						orderKeyboard.closed_orders_button
-					],
-					[
-						types.InlineKeyboardButton(text = "К меню", callback_data = "adminpanel")
 					]
 				]
 			)

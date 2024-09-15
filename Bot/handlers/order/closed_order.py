@@ -37,9 +37,8 @@ async def show_closed_orders(callback: types.CallbackQuery):
 		order_write_off = result[0][11]
 		order_taken_by = result[0][12]
 		
-		order_taken_by = (await callback.bot.get_chat(order_taken_by)).username
 		order_closed_by = (await callback.bot.get_chat(order_closed_by)).username
-		assert is_manager == 1
+		order_taken_by = (await callback.bot.get_chat(order_taken_by)).username
 
 		order_text = f'''
 Заказ #{order_id}
@@ -69,10 +68,7 @@ async def show_closed_orders(callback: types.CallbackQuery):
 				[
 					orderKeyboard.new_orders_button,
 					orderKeyboard.processed_orders_button
-				],
-				[
-					types.InlineKeyboardButton(text = "К меню", callback_data = "adminpanel")
-					]
+				]
 			]
 		)
 		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
@@ -171,9 +167,6 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 					[
 						orderKeyboard.new_orders_button,
 						orderKeyboard.processed_orders_button
-					],
-					[
-						types.InlineKeyboardButton(text = "К меню", callback_data = "adminpanel")
 					]
 				]
 			)

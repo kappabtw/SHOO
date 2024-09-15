@@ -3,23 +3,21 @@ from logging import INFO, Manager
 from Bot import data
 from asql import ASQL
 
-async def convert_data_to_dict(data_list) -> dict:
-    data = data_list[0]
-    return {
-        'Бренд':data[0],
-        'Модель':data[1],
-        'Размер':data[2],
-        'Цена':data[3],
-        'Рассцветка':data[5],           
-        'Скидка':data[6],
-        'Скидочная цена':data[7],
-        'Новинка':data[8],
-        'id':data[9],
-        'url':data[10],
-		'Количество':data[11]
-        }
+async def convert_data_to_dict(brand:str, model:str, sizes:list,color:str, model_info) -> dict:
+	def_price,discount,discount_price,is_new = model_info
+	print(def_price,discount,discount_price,is_new)
+	return {
+		'Бренд':brand,
+		'Модель':model,
+		'Размеры':list(map(int, sizes)),
+		'Цена':def_price,
+		'Рассцветка':color,           
+		'Скидка':discount,
+		'Скидочная цена':discount_price,
+		'Новинка':is_new
+	}
 
-async def textAboutModel(about_model:dict, current:int, count:int, enable_manager_info:bool = False)->str:
+async def textAboutModel(about_model:dict, current:int, count:int)->str:
 	if about_model['Скидка'] == 1:  # Скидка есть
 		price_info = (
 			f"Скидочная цена: {about_model['Скидочная цена']} BYN.\n"
@@ -28,25 +26,18 @@ async def textAboutModel(about_model:dict, current:int, count:int, enable_manage
 		price_info = (
 			f"Цена: {about_model['Цена']} BYN\n"	
 		)
-		
-	if enable_manager_info:
-		info_for_managers = f'''
-ID: {about_model['id']}
-URL: {about_model['url']}
-Количество на складе: {about_model['Количество']}
-'''
-	else:
-		info_for_managers = ""
-		
 
 		# Формирование текстового описания
 	return f'''
-{"[Новинка]" if about_model['Новинка'] else ''} {about_model['Бренд']} {about_model['Модель']} --> {current}\{count}
+[{current+1} из {count}]
+
+{"[Новинка]" if about_model['Новинка'] else ''} {about_model['Бренд']} {about_model['Модель']}
 
 Цвет: {about_model['Рассцветка']}
-Размер: {about_model['Размер']}
+
+Размеры: {about_model['Размеры']}
+
 {price_info}
-{info_for_managers}
 '''
 
 async def get_models_id(callback_data:str, positive_count:bool = True):
@@ -65,16 +56,44 @@ async def get_models_id(callback_data:str, positive_count:bool = True):
 	callback_data = callback_data.split("_")
 	brand = callback_data[start_iter]
 	model = callback_data[start_iter + 1]
-	request = f"SELECT id FROM Кроссовки WHERE Бренд = \'{brand}\' AND Модель = \'{model}\' {'AND Количество > 0' if positive_count else ''}" #попробовать забирать все айди
+	request = f"""SELECT 
+  Расцветка, 
+  GROUP_CONCAT(Размер) AS Sizes
+FROM 
+  Кроссовки
+WHERE 
+  Бренд = '{brand}' 
+  AND Модель = '{model}'
+  AND Расцветка IN (
+	SELECT 
+	  Расцветка
+	FROM 
+	  Кроссовки
+	WHERE 
+	  Бренд = '{brand}' 
+	  AND Модель = '{model}' 
+	  {"AND Количество > 0" if positive_count else ""}
+	  {f"AND {option} = 1" if option else ""}
+  )
+GROUP BY 
+  Расцветка""" 
 	if option:
 		request += f" AND {option} = 1"
 	models_data = await ASQL.execute(request)
-	return [model[0] for model in models_data]
+	print(models_data)
+	return models_data
 
-async def get_text_about_model(id : int, current:int, count:int, enable_manager_info:bool = False):
-	model_info_list = await ASQL.execute(f"SELECT * FROM Кроссовки WHERE id = {id}")
-	model_info_dict = await convert_data_to_dict(model_info_list)
-	return await textAboutModel(model_info_dict, current, count, enable_manager_info)
+async def get_text_about_model(brand: str, model: str, list_colors_sizes: list, current: int, count: int):
+	sizes = [size for size in list_colors_sizes[current][1].split(",")]
+	print(*sizes)
+	print(model, brand)
+	color = list_colors_sizes[current][0]
+	signs = ",".join(["?"] * len(sizes))  # Create a string of placeholders
+	print(sizes, signs)
+	model_info = await ASQL.execute(f"SELECT DISTINCT Цена,Скидка,\"Скидочная цена\",Новинка FROM Кроссовки WHERE Модель = ? AND Бренд = ? AND Расцветка = ? AND Размер IN ({signs})", (model, brand,color, *sizes))
+	print(model_info)
+	model_info_dict = await convert_data_to_dict(brand, model, sizes, color, model_info[0])
+	return await textAboutModel(model_info_dict, current, count)
 
 
 	
