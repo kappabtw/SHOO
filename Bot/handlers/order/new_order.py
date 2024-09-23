@@ -43,11 +43,7 @@ async def show_new_orders(callback: types.CallbackQuery):
 		model_size = result[0][7]
 		model_color = result[0][8]
 		model_count = result[0][9]
-		orders_model_count = result[0][10]
-
-		print(result)		
-
-
+		orders_model_count = result[0][10]		
 
 		order_text = f'''
 Заказ #{order_id}
@@ -55,9 +51,13 @@ async def show_new_orders(callback: types.CallbackQuery):
 Заказчик - {order_user_name}
 
 Бренд - {model_brand}
+
 Модель - {model_name}
+
 Размер - {model_size}
+
 Расцветка - {model_color}
+
 Количество на складе - {model_count}
 
 Заказов в обработке с такой же моделью - {orders_model_count}
@@ -156,14 +156,17 @@ async def next_prev_new_orders(callback: types.CallbackQuery):
 Заказчик - {order_user_name}
 
 Бренд - {model_brand}
+
 Модель - {model_name}
+
 Размер - {model_size}
+
 Расцветка - {model_color}
+
 Количество на складе - {model_count}
 
 Заказов в обработке с такой же моделью - {orders_model_count}
 			'''
-			print(order_text)
 
 			keyboard_next_prev = types.InlineKeyboardMarkup(
 				inline_keyboard=[

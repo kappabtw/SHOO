@@ -11,35 +11,24 @@ router = Router()
 async def show_model(callback : types.CallbackQuery):
 	try:
 		print(callback.data)
-		
 		is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =  ?)", (callback.from_user.id))
 		assert is_manager[0][0] == 1
 		
-		list_id:list = await model_display.get_models_id(callback.data, positive_count = False)  # Получаем список ID моделей
+		model_data = callback.data.split("_")[1:]
+		brand = model_data[0]
+		model = model_data[1]
+		list_id:list = await model_display.get_models_id(callback.data, False)  # Получаем список ID моделей
 		if not list_id: 
 			await callback.answer(text = "Извините, модель не найдена", show_alert=True)
 			return
-		
 		current_index:int = 0
 		count_list_id:int = len(list_id)
-		model_data = callback.data.split("_")
-		if model_data[-1] == "+" or model_data[-1] == "-":
-			current_index = int(model_data.pop(-2))
-			try:
-				await ASQL.execute(f"UPDATE Кроссовки SET Количество = Количество {model_data[-1]} 1 WHERE id = ?", (list_id[current_index]))
-				model_data.pop(-1)
-			except IntegrityError:
-				await callback.answer("Количество не может быть меньше нуля", show_alert = True)
-				return
+		color = list_id[current_index][0]
 				
-		txt:str = await model_display.get_text_about_model(list_id[current_index], current = 1, count=count_list_id, enable_manager_info= True)  # Получаем подпись к изображению
-		photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ?", (list_id[current_index]))
+		txt:str = await model_display.get_text_about_model(brand,model,list_id, current = 0, count=count_list_id)  # Получаем подпись к изображению
+		photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE Бренд = ? AND Модель = ? AND Расцветка = ?", (brand, model, color))
 		photo_id = photo_from_db[0][0]
-			
-			
-		brand = model_data[1] 
-		model_data = "_".join(model_data)  #это и есть callback.data
-		print(f"prev_{model_data}_{current_index}")
+		
 		if not photo_id:
 			photo_id = model_display.data.no_image_photo
 		
@@ -48,16 +37,12 @@ async def show_model(callback : types.CallbackQuery):
 			keyboard_prev_next = types.InlineKeyboardMarkup(
 															inline_keyboard=[
 																[
-																	  types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
-																	  types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
-																],
-																[
-																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{brand}_{model}_{color}")
 																],
 																  
 																[
-																	  types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{model_data}_{current_index}"),
-																	  types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
+																	  types.InlineKeyboardButton(text = "Назад", callback_data=f"modeladminpanelprev_{brand}_{model}_{current_index}"),
+																	  types.InlineKeyboardButton(text = "Вперед", callback_data=f"modeladminpanelnext_{brand}_{model}_{current_index}")
 																],
 
 															    [
@@ -72,11 +57,7 @@ async def show_model(callback : types.CallbackQuery):
 			keyboard_alone = types.InlineKeyboardMarkup(
 															inline_keyboard=[
 																[
-																	types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
-																	types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
-																	],
-																[
-																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
+																		types.InlineKeyboardButton(text = "Редактировать",callback_data = f"redactmodels_{brand}_{model}_{color}")
 																	],
 																[
 																	types.InlineKeyboardButton(text = "Назад к моделям", callback_data= f"brandadminpanel_{brand}")
@@ -94,56 +75,46 @@ async def show_model(callback : types.CallbackQuery):
 	finally:
 		await callback.answer()
 
-@router.callback_query(lambda callback: callback.data.startswith("prev_modeladminpanel_") or callback.data.startswith("next_modeladminpanel_"))   
+@router.callback_query(lambda callback: callback.data.startswith("modeladminpanelprev_") or callback.data.startswith("modeladminpanelnext_"))   
 async def callback_prev_next(callback: types.CallbackQuery):
 	try:
+
+		print(callback.data)
 		
 		is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =  ?)", (callback.from_user.id))
 		assert is_manager[0][0] == 1
 		
-		model_data = callback.data.split("_")
-		sign = None
-		if model_data[-1] == "+" or model_data[-1] == "-":
-			sign = model_data.pop(-1)
-			index_for_change = int(model_data.pop(-1))
-		print(model_data)
-		current_index = int(model_data[-1])
-		brand = model_data[2]
-		model_data = "_".join(model_data[1:-1])
-		list_id = await model_display.get_models_id(model_data, positive_count = False)
-		
-		if sign is not None:
-			try:
-				await ASQL.execute(f"UPDATE Кроссовки SET Количество = Количество {sign} 1 WHERE id = ?", (list_id[index_for_change]))
-			except IntegrityError:
-				await callback.answer("Количество не может быть меньше нуля", show_alert = True)
-				return
+		parts = callback.data.split("_")
+		brand = parts[1]
+		model = parts[2]
+		current_index = int(parts[-1])
+		list_id = await model_display.get_models_id(callback.data, False)  # Получаем список ID моделей
 		count_list_id = len(list_id)
-		if callback.data.startswith("prev_"):
+		if callback.data.startswith("modeladminpanelprev_"):
 			current_index -= 1
-		elif callback.data.startswith("next_"):
+		elif callback.data.startswith("modeladminpanelnext_"):
 			current_index += 1
 		if current_index < 0:
 			current_index = len(list_id) - 1
 		elif current_index >= len(list_id):
-			current_index = 0  
-		txt = await model_display.get_text_about_model(list_id[current_index], current=current_index + 1, count = len(list_id), enable_manager_info= True)
-		photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE id = ? AND Количество > 0", (list_id[current_index]))
+			current_index = 0
+		color = list_id[current_index][0]
+		print(0)
+		txt = await model_display.get_text_about_model(brand,model,list_id,current=current_index, count = count_list_id)
+		print(1)
+		photo_from_db = await ASQL.execute("SELECT Фото FROM Кроссовки WHERE Бренд = ? AND Модель = ? AND Расцветка = ?", (brand, model, color))
+		print(photo_from_db)
 		photo_id = photo_from_db[0][0]
 		
 		if count_list_id > 1:
 			keyboard_prev_next = types.InlineKeyboardMarkup(
 																inline_keyboard=[
 																	[
-																		types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
-																		types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{brand}_{model}_{color}")
 																	],
 																	[
-																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
-																	],
-																	[
-																		types.InlineKeyboardButton(text = "Назад", callback_data=f"prev_{model_data}_{current_index}"),
-																		types.InlineKeyboardButton(text = "Вперед", callback_data=f"next_{model_data}_{current_index}")
+																		types.InlineKeyboardButton(text = "Назад", callback_data=f"modeladminpanelprev_{brand}_{model}_{current_index}"),
+																		types.InlineKeyboardButton(text = "Вперед", callback_data=f"modeladminpanelnext_{brand}_{model}_{current_index}")
 																		],
 																
 																	[
@@ -160,11 +131,7 @@ async def callback_prev_next(callback: types.CallbackQuery):
 			keyboard_prev_next = types.InlineKeyboardMarkup(
 																inline_keyboard=[
 																	[
-																		types.InlineKeyboardButton(text = "-", callback_data = f"{model_data}_{current_index}_-"),
-																		types.InlineKeyboardButton(text = "+", callback_data = f"{model_data}_{current_index}_+")
-																	],
-																	[
-																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{','.join(map(str,list_id))}")
+																		types.InlineKeyboardButton(text = "Редактировать", callback_data = f"redactmodels_{brand}_{model}_{color}")
 																	],
 																
 																	[

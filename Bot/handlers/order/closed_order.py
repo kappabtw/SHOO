@@ -46,8 +46,11 @@ async def show_closed_orders(callback: types.CallbackQuery):
 Заказчик - {order_user_name}
 
 Бренд - {model_brand}
+
 Модель - {model_name}
+
 Размер - {model_size}
+
 Расцветка - {model_color}
 
 Время закрытия заказа - {order_closed_date}
@@ -145,8 +148,11 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 Заказчик - {order_user_name}
 
 Бренд - {model_brand}
+
 Модель - {model_name}
+
 Размер - {model_size}
+
 Расцветка - {model_color}
 
 Время закрытия заказа - {order_closed_date}

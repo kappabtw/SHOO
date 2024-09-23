@@ -35,7 +35,7 @@ async def show_processed_orders(callback: types.CallbackQuery):
 		model_size = result[7]
 		model_color = result[8]
 		model_count = result[9]
-		orders_model_count = result[10] - 1
+		orders_model_count = result[10]
 		order_taken_by = result[11]
 		assert is_manager == 1
 		order_taken_by = (await callback.bot.get_chat(order_taken_by)).username
@@ -46,9 +46,13 @@ async def show_processed_orders(callback: types.CallbackQuery):
 Заказчик - {order_user_name}
 
 Бренд - {model_brand}
+
 Модель - {model_name}
+
 Размер - {model_size}
+
 Расцветка - {model_color}
+
 Количество на складе - {model_count}
 
 Заказ взял : @{order_taken_by}
@@ -146,9 +150,13 @@ async def next_prev_processed_orders(callback: types.CallbackQuery):
 Заказчик - {order_user_name}
 
 Бренд - {model_brand}
+
 Модель - {model_name}
+
 Размер - {model_size}
+
 Расцветка - {model_color}
+
 Количество на складе - {model_count}
 
 Заказ взял: @{order_taken_by} 

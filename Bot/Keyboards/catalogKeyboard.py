@@ -16,7 +16,7 @@ async def select_brands() -> types.InlineKeyboardMarkup:
     for brand in brands:
         row.append(types.InlineKeyboardButton(text=brand[0], callback_data=f"{data.Callback['brand']['def']}{brand[0]}"))
         
-        if len(row) == 3:
+        if len(row) == 2:
             inline_buttons.append(row)
             row = [] 
 
@@ -34,7 +34,7 @@ async def select_models(callback: types.CallbackQuery):
     row = []
     for model in models:
         row.append(types.InlineKeyboardButton(text=model[0], callback_data=f"{data.Callback['model']['def']}{brand}_{model[0]}"))
-        if len(row) == 3:
+        if len(row) == 2:
             inline_buttons.append(row)
             row = []
     if row:
@@ -51,7 +51,7 @@ async def select_brands_with_sales() -> types.InlineKeyboardMarkup:
     for brand in brands:
         row.append(types.InlineKeyboardButton(text=brand[0], callback_data=f"{data.Callback['brand']['sales']}{brand[0]}"))
         
-        if len(row) == 3:
+        if len(row) == 2:
             inline_buttons.append(row)
             row = [] 
 
@@ -71,7 +71,7 @@ async def select_brands_new_items() -> types.InlineKeyboardMarkup:
     for brand in brands:
         row.append(types.InlineKeyboardButton(text=brand[0], callback_data=f"{data.Callback['brand']['new']}{brand[0]}"))
         
-        if len(row) == 3:
+        if len(row) == 2:
             inline_buttons.append(row)
             row = [] 
 
@@ -90,7 +90,7 @@ async def select_models_with_sales(callback: types.CallbackQuery):
     row = []
     for model in models:
         row.append(types.InlineKeyboardButton(text=model[0], callback_data=f"{data.Callback['model']['sales']}{brand}_{model[0]}"))
-        if len(row) == 3:
+        if len(row) == 2:
             inline_buttons.append(row)
             row = []
     if row:
@@ -105,7 +105,7 @@ async def select_models_new_items(callback: types.CallbackQuery):
     row = []
     for model in models:
         row.append(types.InlineKeyboardButton(text=model[0], callback_data=f"{data.Callback['model']['new']}{brand}_{model[0]}"))
-        if len(row) == 3:
+        if len(row) == 2:
             inline_buttons.append(row)
             row = []
     if row:

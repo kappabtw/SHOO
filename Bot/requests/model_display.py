@@ -58,7 +58,7 @@ async def get_models_id(callback_data:str, positive_count:bool = True):
 	model = callback_data[start_iter + 1]
 	request = f"""SELECT 
   Расцветка, 
-  GROUP_CONCAT(Размер) AS Sizes
+  GROUP_CONCAT(CASE WHEN Количество > 0 THEN Размер ELSE NULL END) AS Sizes
 FROM 
   Кроссовки
 WHERE 
@@ -75,10 +75,10 @@ WHERE
 	  {"AND Количество > 0" if positive_count else ""}
 	  {f"AND {option} = 1" if option else ""}
   )
+  AND Количество > 0
 GROUP BY 
-  Расцветка""" 
-	if option:
-		request += f" AND {option} = 1"
+  Расцветка"""
+	print(request)
 	models_data = await ASQL.execute(request)
 	print(models_data)
 	return models_data

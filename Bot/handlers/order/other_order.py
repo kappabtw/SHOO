@@ -4,6 +4,7 @@ import datetime
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
+from aiosqlite import IntegrityError
 from asql import ASQL
 from Bot.Keyboards import orderKeyboard
 
@@ -107,14 +108,16 @@ async def close_order(callback: types.CallbackQuery):
 		current_time = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
 		write_off = True if data[3] == "write-off" else False
 		is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id))
-		assert is_manager[0][0] == 1
-		await ASQL.execute(f"UPDATE Заказы SET order_in_process = ?, order_closed = ?, order_closed_date = ?, order_closed_by = ?, order_closed_write_off = ?{fromnew} WHERE order_id = ?",
-					 (0, 1, current_time, callback.from_user.id, 1 if write_off else 0, order_id))
+		if is_manager[0][0] != 1:
+			return
+		request = f"UPDATE Заказы SET order_in_process = ?, order_closed = ?, order_closed_date = ?, order_closed_by = ?, order_closed_write_off = ?{fromnew} WHERE order_id = ?"
+		print(request)
 		if write_off:
 			await ASQL.execute("UPDATE Кроссовки SET Количество = Количество - 1 WHERE id = (SELECT model_id FROM Заказы WHERE order_id = ?)", (order_id))
+		await ASQL.execute(request,(0, 1, current_time, callback.from_user.id, 1 if write_off else 0, order_id))
 		await callback.answer(text = f"Заказ {order_id} был успешно закрыт {'без списания' if not write_off else ''}", show_alert = True)
-	except AssertionError:
-		await callback.answer()
+	except IntegrityError as e:
+		await callback.answer(text=f'Ошибка: {e}', show_alert=True) 
 	except RuntimeError as runtime_error:
 		callback.answer(text = runtime_error)
 		
@@ -124,7 +127,8 @@ async def close_order(callback: types.CallbackQuery):
 async def take_order(callback: types.CallbackQuery):
 	try:
 		is_manager = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id))
-		assert is_manager[0][0] == 1
+		if is_manager[0][0] != 1:
+			return
 		data = callback.data.split("_")
 		order_id = data[3]
 		if (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Заказы WHERE order_id = ? AND order_in_process = 1)", (order_id)))[0][0] == 1:
@@ -132,8 +136,8 @@ async def take_order(callback: types.CallbackQuery):
 			return
 		await ASQL.execute("UPDATE Заказы SET order_in_process = 1, order_taken_by = ? WHERE order_id = ?", (callback.from_user.id, order_id))
 		await callback.answer("Заказ помечен как обрабатываемый")
-	except AssertionError:
-		await callback.answer()
+	except IntegrityError as e:
+		await callback.answer(text=f'Ошибка: {e}', show_alert=True) 
 	except RuntimeError as runtime_error:
 		await callback.answer(text = runtime_error, show_alert= True)
 		
