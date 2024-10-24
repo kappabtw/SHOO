@@ -96,7 +96,8 @@ async def show_managers(message: types.Message):
     
 
 #@router.message(Command("op"))
-async def op(message: types.Message):
-    await ASQL.execute("INSERT INTO Менеджеры (id, username, access) VALUES (?,?, 1)",(message.from_user.id, f"@{message.from_user.username}"))
+#async def op(message: types.Message):
+#    await ASQL.execute("INSERT INTO Менеджеры (id, username, access) VALUES (?,?, 1)",(message.from_user.id, f"@{message.from_user.username}"))
     
-    
+   
+

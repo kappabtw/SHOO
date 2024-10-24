@@ -3,7 +3,7 @@
 Message = {
     "upper_menu" : "Старт",
     "upper_info" : "Информация о нас",
-    "sales" : "Скидки",		  #НУЖНО БЫЛО ХРАНИТЬ В JSON`Е
+    "sales" : "Скидки",		  
     "new_items" : "Новинки",
     "catalog": "Каталог",
     "manager": "Поддержка",
@@ -40,7 +40,7 @@ Message = {
 
 Callback = {
     
-    "sales" : "sales",		  #НУЖНО БЫЛО ХРАНИТЬ В JSON`Е
+    "sales" : "sales",		  
     "new_items" : "new_items",
     "catalog": "to_catalog_",
     "manager": "manager",
@@ -69,6 +69,16 @@ model_options = (
 
 time_photo = "AgACAgIAAxkBAAIWcWalyNHHCXDGIz6Go45oPY3ShLltAAKY6zEbb_opSYPWrqNeY8t9AQADAgADeQADNQQ"
 no_image_photo = "AgACAgIAAxkBAAIWl2apPW1x9xN1YyBbcdP9lmggfj3xAAKx3jEbbZ1JSY8IkkfENIxvAQADAgADeAADNQQ"
+
+
+manager_url = "" #https://t.me/username
+review_channel = "" #https://t.me/channelname
+
+photos = {
+    "start" : time_photo,
+    "catalog" : time_photo,
+    "info" : time_photo
+    }
 
 
 
