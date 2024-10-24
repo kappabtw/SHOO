@@ -18,12 +18,13 @@ class ChangeModel(StatesGroup):
     color = State()
     discount = State()
     discountprice = State()
-    is_new = State()
+    isnew = State()
     quantity = State()
     size_quantity = State()
     check = State()
     original_callback = State()
     model_info = State()
+    ids = State()
     finish = State()
     
 field_column:dict = {
@@ -34,26 +35,37 @@ field_column:dict = {
     "color" : "Расцветка",
     "discount" : "Скидка",
     "discountprice" : "Скидочная цена",
-    "is_new": "Новинка" 
+    "isnew": "Новинка" 
     }
 
 @router.callback_query(StateFilter(None), lambda callback: callback.data.startswith("redactmodels_"))
 async def start_change(callback: types.CallbackQuery, state: FSMContext):
     if (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id)))[0][0] != 1:
         return
-    id = list(map(int, callback.data.split("_")[1].split(",")))[0]
     await state.set_state(ChangeModel.start)
-    await state.update_data(original_callback = callback.data)
-    model_info = (await ASQL.execute("SELECT Бренд,Модель,Расцветка,Цена,Скидка,\"Скидочная цена\",Новинка FROM Кроссовки WHERE id = ?", (id)))[0]
     
+    data = callback.data.split("_")[1:]
+    brand, model, color = data
+    print(brand,model,color)
+
+    await state.update_data(original_callback = callback.data)
+    model_info = (await ASQL.execute("SELECT DISTINCT Цена,Скидка,\"Скидочная цена\",Новинка FROM Кроссовки WHERE Бренд = ? AND Модель = ? AND Расцветка = ?", (brand, model, color)))[0]
+    ids = (await ASQL.execute("""
+SELECT GROUP_CONCAT(id) AS ids
+FROM Кроссовки
+WHERE Бренд = ? AND Модель = ? AND Расцветка = ?""", (brand, model, color)))[0]
+    ids = list(map(int, ids[0].split(",")))
+    
+    print(ids)
+    await state.update_data(ids = ids)
     model_info = {
-        "Бренд":model_info[0],
-        "Модель":model_info[1],
-        "Расцветка":model_info[2],
-        "Цена":model_info[3],
-        "Скидка":model_info[4],
-        "Скидочная цена":model_info[5],
-        "Новинка":model_info[6],
+        "Бренд":brand,
+        "Модель":model,
+        "Расцветка":color,
+        "Цена":model_info[0],
+        "Скидка":model_info[1],
+        "Скидочная цена":model_info[2],
+        "Новинка":model_info[3],
     } 
     
     await state.update_data(model_info = model_info)
@@ -72,9 +84,10 @@ async def change_start(callback: types.CallbackQuery, state: FSMContext):
             [
                 types.InlineKeyboardButton(text = "Бренд", callback_data="change_brand"),
                 types.InlineKeyboardButton(text = "Модель", callback_data="change_model"),
+                types.InlineKeyboardButton(text = "Расцветка", callback_data="change_color")
             ],
             [
-                types.InlineKeyboardButton(text = "Расцветка", callback_data="change_color"),
+                types.InlineKeyboardButton(text = "Новинка", callback_data="change_isnew"),
                 types.InlineKeyboardButton(text = "Цена", callback_data="change_price"),
                 types.InlineKeyboardButton(text = "Скидка", callback_data="change_discount"),
             ],
@@ -84,7 +97,63 @@ async def change_start(callback: types.CallbackQuery, state: FSMContext):
             ],
         ]
     )
-    await callback.message.answer("Выберите поле для изменения:", reply_markup=keyboard)
+    
+    data = (await state.get_data())["model_info"]
+    data_text = ""
+    for key,value in data.items():
+        data_text+=f'{key}: {value}\n'
+
+    await callback.message.answer(f"""    
+{data_text}
+
+Если [Скидка] = 1, то в каталоге отображается только скидочная цена
+Выберите поле для изменения:                                  
+""", reply_markup=keyboard)
+    
+
+@router.callback_query(StateFilter(ChangeModel), lambda callback: callback.data == "change_isnew")
+async def change_discount(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(ChangeModel.isnew)
+
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+        [
+            types.InlineKeyboardButton(text = "Включить", callback_data = "on_isnew")
+            ],
+        [
+            types.InlineKeyboardButton(text = "Выключить", callback_data = "off_isnew")
+            ]
+        ])    
+
+    await callback.message.answer("Выберите опцию", reply_markup= keyboard)
+
+@router.callback_query(StateFilter(ChangeModel.isnew), lambda callback: callback.data == "on_isnew")
+async def change_discount_price_on(callback : types.CallbackQuery, state : FSMContext):
+    await state.update_data(new_value = 1)
+    await state.set_state(ChangeModel.check)
+    keyboard = types.InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                types.InlineKeyboardButton(text = "Подтвердить", callback_data=f"confirm_isnew"),
+                types.InlineKeyboardButton(text = "Отмена", callback_data=f"cancel_isnew"),
+            ],
+        ]
+    )
+    await callback.message.answer(f"Вы хотите изменить Новинка на 1?", reply_markup=keyboard)
+    
+
+@router.callback_query(StateFilter(ChangeModel.isnew), lambda callback: callback.data == "off_isnew")
+async def change_discount_price_off(callback : types.CallbackQuery, state : FSMContext):
+    await state.update_data(new_value = 0)
+    await state.set_state(ChangeModel.check)
+    keyboard = types.InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                types.InlineKeyboardButton(text = "Подтвердить", callback_data=f"confirm_isnew"),
+                types.InlineKeyboardButton(text = "Отмена", callback_data=f"cancel_isnew"),
+            ],
+        ]
+    )
+    await callback.message.answer(f"Вы хотите изменить Новинка на 0?", reply_markup=keyboard)
 
 @router.callback_query(StateFilter(ChangeModel), lambda callback: callback.data == "change_brand")
 async def change_brand(callback: types.CallbackQuery, state: FSMContext):
@@ -94,6 +163,9 @@ async def change_brand(callback: types.CallbackQuery, state: FSMContext):
 @router.message(StateFilter(ChangeModel.brand))
 async def change_brand_value(message: types.Message, state: FSMContext):
     new_value = message.text
+    if not new_value.isalpha():
+        await message.answer("Пожалуйста, введите строковое значение для бренда.")
+        return
     await state.update_data(new_value=new_value)
     await state.set_state(ChangeModel.check)
     keyboard = types.InlineKeyboardMarkup(
@@ -114,6 +186,9 @@ async def change_model_name(callback: types.CallbackQuery, state: FSMContext):
 @router.message(StateFilter(ChangeModel.model))
 async def change_model_value(message: types.Message, state: FSMContext):
     new_value = message.text
+    if not new_value.isalpha():
+        await message.answer("Пожалуйста, введите строковое значение для модели.")
+        return
     await state.update_data(new_value=new_value)
     await state.set_state(ChangeModel.check)
     keyboard = types.InlineKeyboardMarkup(
@@ -134,6 +209,9 @@ async def change_color(callback: types.CallbackQuery, state: FSMContext):
 @router.message(StateFilter(ChangeModel.color))
 async def change_color_value(message: types.Message, state: FSMContext):
     new_value = message.text
+    if not new_value.isalpha():
+        await message.answer("Пожалуйста, введите строковое значение для расцветки.")
+        return
     await state.update_data(new_value=new_value)
     await state.set_state(ChangeModel.check)
     keyboard = types.InlineKeyboardMarkup(
@@ -146,6 +224,7 @@ async def change_color_value(message: types.Message, state: FSMContext):
     )
     await message.answer(f"Вы хотите изменить Расцветку на {new_value}?", reply_markup=keyboard)
 
+
 @router.callback_query(StateFilter(ChangeModel), lambda callback: callback.data == "change_price")
 async def change_price(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(ChangeModel.price)
@@ -154,6 +233,9 @@ async def change_price(callback: types.CallbackQuery, state: FSMContext):
 @router.message(StateFilter(ChangeModel.price))
 async def change_price_value(message: types.Message, state: FSMContext):
     new_value = message.text
+    if not new_value.replace('.', '', 1).replace(',', '', 1).isdigit():
+        await message.answer("Пожалуйста, введите числовое значение для цены.")
+        return
     await state.update_data(new_value=new_value)
     await state.set_state(ChangeModel.check)
     keyboard = types.InlineKeyboardMarkup(
@@ -165,6 +247,7 @@ async def change_price_value(message: types.Message, state: FSMContext):
         ]
     )
     await message.answer(f"Вы хотите изменить Цену на {new_value}?", reply_markup=keyboard)
+
 
 @router.callback_query(StateFilter(ChangeModel), lambda callback: callback.data == "change_discount")
 async def change_discount(callback: types.CallbackQuery, state: FSMContext):
@@ -204,6 +287,9 @@ async def change_discount_price_off(callback : types.CallbackQuery, state : FSMC
 @router.message(StateFilter(ChangeModel.discountprice))
 async def change_discount_value(message: types.Message, state: FSMContext):
     new_value = message.text
+    if not new_value.replace('.', '', 1).replace(',', '', 1).isdigit():
+        await message.answer("Пожалуйста, введите числовое значение для скидочной цены.")
+        return
     await state.update_data(new_value=new_value)
     await state.set_state(ChangeModel.check)
     keyboard = types.InlineKeyboardMarkup(
@@ -224,7 +310,6 @@ async def confirm_change(callback: types.CallbackQuery, state: FSMContext):
     model_info = state_data["model_info"]
     print(field)
     if field == "discountprice":
-        print("OIEFOWEINFOINEWOFINFOWIENF")
         model_info["Скидка"] = 1
     field = field_column[field]  
     model_info[field] = new_value
@@ -257,23 +342,41 @@ async def cancel_change(callback: types.CallbackQuery, state: FSMContext):
     
 @router.callback_query(StateFilter(ChangeModel.start), lambda callback: callback.data == "finish_change")
 async def finish_change(callback: types.CallbackQuery, state: FSMContext):
+    if (await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id)))[0][0] != 1:
+        return
     change_info = await state.get_data()
     model_info = change_info["model_info"]
-    original_callback = change_info["original_callback"]
-    ids = list(map(int, original_callback.split("_")[1].split(",")))
     
+    ids = change_info["ids"]
+    print(ids)        
     # Обновляем данные в базе данных с защитой от SQL-инъекций
     columns = ", ".join([f'\"{key}\" = ?' for key in model_info.keys()])
     values = list(model_info.values())  # Create a list of values
     placeholders = ', '.join(['?'] * len(ids))  # Create a string of ? placeholders for each ID
     await ASQL.execute(f"UPDATE Кроссовки SET {columns} WHERE id IN ({placeholders}) RETURNING ID", (*values, *ids))
-    print(ids)
     
     # Отправляем подтверждение пользователю
-    await callback.message.answer("Изменения успешно сохранены!")
+    brand = model_info["Бренд"]
+    model = model_info["Модель"]
     
-    # Очищаем состояние
-    await state.update_data()
-    await state.clear()   
-                       
+    await state.clear()
+
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[[types.InlineKeyboardButton(text = "Назад", callback_data=f"modeladminpanel_{brand}_{model}")]])
+
+    await callback.message.answer("Изменения успешно сохранены!", reply_markup= keyboard)
+     
+    
+@router.callback_query(StateFilter(ChangeModel), lambda callback: callback.data.startswith("all_cancel"))
+async def cancel_change(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    model_info = data['original_callback']
+    data = model_info.split("_")[1:-1]
+    brand, model = data
+    print(brand,model)
+    
+    await state.clear()    
+
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[[types.InlineKeyboardButton(text = "Назад", callback_data=f"modeladminpanel_{brand}_{model}")]])
+    
+    await callback.message.answer("Изменения отменены!", reply_markup=keyboard)                     
     

@@ -14,7 +14,8 @@ async def choice_orders_type(callback: types.CallbackQuery):
 	
 	try:
 		is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ?)", (callback.from_user.id))
-		assert is_owner[0][0] == 1
+		if is_owner[0][0] != 1:
+			return
 		orderTypesKeyboard = types.InlineKeyboardMarkup(
 			inline_keyboard = [
 				[
@@ -27,8 +28,6 @@ async def choice_orders_type(callback: types.CallbackQuery):
 		)
 
 		await callback.message.answer("Выберите тип заказов", reply_markup = orderTypesKeyboard)
-	except AssertionError:
-		pass
 	except Exception as handler_exception:
 		await callback.message.reply(f"Произошла ошибка: {handler_exception}") 
 
@@ -40,9 +39,6 @@ async def create_order(callback: types.CallbackQuery):
 		ordered_brand = order_data[2]
 		ordered_color = order_data[3]
 		print(order_data)
-		#order_from_user_id = callback.from_user.id
-		#order_from_user_name = f"@{callback.from_user.username}"
-		#current_datetime = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
 
 		sizes_and_ids = await ASQL.execute("SELECT Размер, id FROM Кроссовки WHERE Бренд = ? AND Модель = ? AND Расцветка = ? AND Количество > 0", (ordered_brand, ordered_model, ordered_color))
 		
@@ -65,10 +61,6 @@ async def create_order(callback: types.CallbackQuery):
 	except Exception as order_create_error:
 		await callback.answer(f"Извините, при обработке вашего заказа произошла ошибка : {order_create_error}", show_alert=True)
 		return
-	#all_managers = await ASQL.execute("SELECT id FROM Менеджеры")
-	#for manager in all_managers:
-		#await callback.bot.send_message(text="Только что был оформлен новый заказ.", chat_id=manager[0], parse_mode=ParseMode.MARKDOWN, reply_markup= await orderKeyboard.to_new_orders())
-	
 
 	await callback.answer()
 

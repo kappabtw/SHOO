@@ -8,11 +8,12 @@ from sqlite3 import IntegrityError
 
 router = Router(name = 'admin')
     
-@router.message(Command('add_manager'))
+@router.message(Command('addmanager'))
 async def add_manager(message: types.Message):
     try:
         is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ? AND access = 1)", (message.from_user.id))
-        assert is_owner[0][0] == 1
+        if is_owner[0][0] != 1:
+            return
         text:list = message.text.split(" ")
         if len(text) != 2:
             await message.reply(text = "Неверный аргумент")
@@ -30,16 +31,15 @@ async def add_manager(message: types.Message):
             return
         await message.reply(f"Успешно добавлен новый менеджер {new_username}")
         await message.bot.send_message(text = f"{new_username}, Вы были назначены на роль менеджера", chat_id = new_id)
-    except AssertionError:
-        pass
     except Exception as handler_exception:
         await message.reply(f"Произошла ошибка при обработке запроса `/add_manager {new_username} : {handler_exception} `", parse_mode= ParseMode.MARKDOWN)
     
-@router.message(Command("del_manager"))
+@router.message(Command("delmanager"))
 async def del_manager(message: types.Message):
     try:
         is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id =? AND access = 1)", (message.from_user.id))
-        assert is_owner[0][0] == 1
+        if is_owner[0][0] != 1:
+            return
         text: list = message.text.split(" ")
         target = text[1]
         if target.startswith("@"):
@@ -68,14 +68,13 @@ async def del_manager(message: types.Message):
 async def delete_all_managers(message: types.Message):
     try:
         is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ? AND access = 1)", (message.from_user.id))
-        assert is_owner[0][0] == 1
+        if is_owner[0][0] != 1:
+            return
         all_managers = await ASQL.execute("SELECT id FROM Менеджеры WHERE access = 0")
         await ASQL.execute("DELETE FROM Менеджеры WHERE access = 0")
         await message.reply("Все менеджеры были успешно удалены")
         for manager in all_managers:
             await message.bot.send_message(text = f"Вы были удалены из списка менеджеров", chat_id = manager[0])
-    except AssertionError:
-        pass
     except Exception as handler_exception:
         await message.reply(f"Произошла ошибка при обработке запроса `/delete_all_managers : {handler_exception} `", parse_mode= ParseMode.MARKDOWN)
 
@@ -83,15 +82,14 @@ async def delete_all_managers(message: types.Message):
 async def show_managers(message: types.Message):
     try:
         is_owner = await ASQL.execute("SELECT EXISTS (SELECT 1 FROM Менеджеры WHERE id = ? AND access = 1)", (message.from_user.id))
-        assert is_owner[0][0] == 1
+        if is_owner[0][0] != 1:
+            return
         all_managers = await ASQL.execute("SELECT * FROM Менеджеры WHERE access = 0"                                  )
         text = "Список менеджеров [username|userid]:\n"
         print(all_managers)
         for manager in all_managers:
             text+= f"{manager[1]}|{manager[0]}\n\n"
         await message.answer(text = text)
-    except AssertionError:
-        pass
     except Exception as handler_error:
         await message.reply(text = f"При обработке вашего запроса произошла ошибка : `{handler_error}`", parse_mode = ParseMode.MARKDOWN)
     

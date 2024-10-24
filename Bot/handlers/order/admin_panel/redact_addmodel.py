@@ -263,15 +263,13 @@ async def add_to_catalog(callback: types.CallbackQuery, state:FSMContext):
     added_models_id = []
     
     discount_pice = -1 if data['discount'] != 1 else data['discount_price']
-    try: 
-        for i in range(len(data['size_quantity'])):
-            result = await ASQL.execute("INSERT INTO Кроссовки (Бренд,Модель,Расцветка,Размер,Цена,Скидка,\"Скидочная цена\",Новинка,Количество) VALUES(?,?,?,?,?,?,?,?,?) RETURNING id",
-                                (data['brand'],data['model'],data['color'],
-                                data['size_quantity'][i][0],data['price'],data['discount'],
-                                discount_pice,data['is_new'],data['size_quantity'][i][1]))
-            added_models_id.append(int(result[0][0]))
-    finally:
-        pass
+    
+    for i in range(len(data['size_quantity'])):
+        result = await ASQL.execute("INSERT INTO Кроссовки (Бренд,Модель,Расцветка,Размер,Цена,Скидка,\"Скидочная цена\",Новинка,Количество) VALUES(?,?,?,?,?,?,?,?,?) RETURNING id",
+                            (data['brand'],data['model'],data['color'],
+                            data['size_quantity'][i][0],data['price'],data['discount'],
+                            discount_pice,data['is_new'],data['size_quantity'][i][1]))
+        added_models_id.append(int(result[0][0]))
         
     await callback.message.answer(f"Успешно добавлено.\nЗагрузить фотографии можно с помощью отправки команды `/load_image {data['brand']}_{data['model']}_{data['color']}` с прикреплённой фотографией",
                                   parse_mode=ParseMode.MARKDOWN)

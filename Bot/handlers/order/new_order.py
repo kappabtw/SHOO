@@ -85,7 +85,7 @@ async def show_new_orders(callback: types.CallbackQuery):
 			]
 		)
 		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
-	except AssertionError:
+	finally:
 		await callback.answer()
 
 @router.callback_query(lambda callback: callback.data.startswith("nextorder_") or callback.data.startswith("prevorder_"))        

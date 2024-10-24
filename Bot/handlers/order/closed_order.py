@@ -24,6 +24,10 @@ async def show_closed_orders(callback: types.CallbackQuery):
 		result = await ASQL.execute(query, (callback.from_user.id))
 		print(result)
 		is_manager = result[0][0]
+		
+		if is_manager != 1:
+			return
+		
 		order_id = result[0][1]
 		order_user_id = result[0][2]
 		order_user_name = result[0][3]
@@ -75,8 +79,6 @@ async def show_closed_orders(callback: types.CallbackQuery):
 			]
 		)
 		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
-	except AssertionError:
-		await callback.answer()
 	except IndexError:
 		await callback.answer("Закрытые заказы отсутствуют")
 		return
@@ -123,7 +125,8 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 				o.order_id = (SELECT next_order_id FROM next_order)
 			""".format(det_func=det_func, direction=direction)
 			result = await ASQL.execute(query, (callback.from_user.id, call_order_id))
-			assert result[0][8] == 1
+			if result[0][8] != 1:
+				return
 
 			order_data = result[0]
 			order_id = order_data[0]
@@ -177,8 +180,6 @@ async def next_prev_closed_orders(callback: types.CallbackQuery):
 				]
 			)
 			await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
-	except AssertionError:
-		pass
 	except IndexError:
 		pass
 	finally:

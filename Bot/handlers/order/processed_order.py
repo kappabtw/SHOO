@@ -37,7 +37,8 @@ async def show_processed_orders(callback: types.CallbackQuery):
 		model_count = result[9]
 		orders_model_count = result[10]
 		order_taken_by = result[11]
-		assert is_manager == 1
+		if is_manager != 1:
+			return
 		order_taken_by = (await callback.bot.get_chat(order_taken_by)).username
 
 		order_text = f'''
@@ -79,9 +80,6 @@ async def show_processed_orders(callback: types.CallbackQuery):
 			]
 		)
 		await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
-	except AssertionError:
-		await callback.answer()
-		return
 	except IndexError:
 		await callback.answer("Заказы в обработке отсутствуют")
 		return
@@ -128,7 +126,8 @@ async def next_prev_processed_orders(callback: types.CallbackQuery):
 			""".format(det_func=det_func, direction=direction)
 			result = await ASQL.execute(query, (callback.from_user.id, call_order_id))
 
-			assert result[0][8] == 1
+			if result[0][8] != 1:
+				return
 
 			order_data = result[0]
 			order_id = order_data[0]
@@ -183,8 +182,6 @@ async def next_prev_processed_orders(callback: types.CallbackQuery):
 				]
 			)
 			await callback.message.edit_text(text=order_text, reply_markup=keyboard_next_prev)
-	except AssertionError:
-		pass
 	except IndexError:
 		await callback.answer("Заказы в обработке отсутствуют")
 		return

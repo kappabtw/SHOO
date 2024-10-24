@@ -17,7 +17,7 @@ async def convert_data_to_dict(brand:str, model:str, sizes:list,color:str, model
 		'Новинка':is_new
 	}
 
-async def textAboutModel(about_model:dict, current:int, count:int)->str:
+async def textAboutModel(about_model:dict, current:int, count:int, more_info:bool = False, sizes_count = None)->str:
 	if about_model['Скидка'] == 1:  # Скидка есть
 		price_info = (
 			f"Скидочная цена: {about_model['Скидочная цена']} BYN.\n"
@@ -27,7 +27,14 @@ async def textAboutModel(about_model:dict, current:int, count:int)->str:
 			f"Цена: {about_model['Цена']} BYN\n"	
 		)
 
-		# Формирование текстового описания
+		
+	if more_info:
+		sizes_info = f"Размеры|Количество:"
+		for current_size in sizes_count:
+			sizes_info += f"\n{current_size[0]} | {current_size[1]}"
+	else:
+		sizes_info = f"Размеры: {about_model['Размеры']}"
+		
 	return f'''
 [{current+1} из {count}]
 
@@ -35,12 +42,13 @@ async def textAboutModel(about_model:dict, current:int, count:int)->str:
 
 Цвет: {about_model['Рассцветка']}
 
-Размеры: {about_model['Размеры']}
+{sizes_info}
 
 {price_info}
 '''
 
 async def get_models_id(callback_data:str, positive_count:bool = True):
+	print(positive_count)
 	start_iter:int = None
 	option:str = None
 	if data.Callback['model']['def'] in callback_data:
@@ -58,7 +66,7 @@ async def get_models_id(callback_data:str, positive_count:bool = True):
 	model = callback_data[start_iter + 1]
 	request = f"""SELECT 
   Расцветка, 
-  GROUP_CONCAT(CASE WHEN Количество > 0 THEN Размер ELSE NULL END) AS Sizes
+  GROUP_CONCAT(Размер) AS Sizes
 FROM 
   Кроссовки
 WHERE 
@@ -75,7 +83,6 @@ WHERE
 	  {"AND Количество > 0" if positive_count else ""}
 	  {f"AND {option} = 1" if option else ""}
   )
-  AND Количество > 0
 GROUP BY 
   Расцветка"""
 	print(request)
@@ -83,7 +90,7 @@ GROUP BY
 	print(models_data)
 	return models_data
 
-async def get_text_about_model(brand: str, model: str, list_colors_sizes: list, current: int, count: int):
+async def get_text_about_model(brand: str, model: str, list_colors_sizes: list, current: int, count: int, more_info:bool = False):
 	sizes = [size for size in list_colors_sizes[current][1].split(",")]
 	print(*sizes)
 	print(model, brand)
@@ -91,9 +98,14 @@ async def get_text_about_model(brand: str, model: str, list_colors_sizes: list, 
 	signs = ",".join(["?"] * len(sizes))  # Create a string of placeholders
 	print(sizes, signs)
 	model_info = await ASQL.execute(f"SELECT DISTINCT Цена,Скидка,\"Скидочная цена\",Новинка FROM Кроссовки WHERE Модель = ? AND Бренд = ? AND Расцветка = ? AND Размер IN ({signs})", (model, brand,color, *sizes))
+	if more_info:
+		sizes_count = await ASQL.execute(f"SELECT Размер, Количество FROM Кроссовки WHERE Модель = ? AND Бренд = ? AND Расцветка = ? AND Размер IN ({signs})", (model, brand,color, *sizes))
+		print("iefn    ", sizes_count)
+	else: 
+		sizes_count = None
 	print(model_info)
 	model_info_dict = await convert_data_to_dict(brand, model, sizes, color, model_info[0])
-	return await textAboutModel(model_info_dict, current, count)
+	return await textAboutModel(model_info_dict, current, count, more_info, sizes_count)
 
 
 	
